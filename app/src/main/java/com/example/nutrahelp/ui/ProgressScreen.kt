@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Celebration
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material3.Icon
@@ -63,7 +64,8 @@ fun ProgressScreen(
     onNavigateToA1C: () -> Unit = {},
     onNavigateToNsv: () -> Unit = {},
     onNavigateToBodyFat: () -> Unit = {},
-    onNavigateToProjection: () -> Unit = {}
+    onNavigateToProjection: () -> Unit = {},
+    onNavigateToMilestones: () -> Unit = {}
 ) {
     var weightInput by remember { mutableStateOf("") }
     var useKg by remember { mutableStateOf(true) }
@@ -154,6 +156,10 @@ fun ProgressScreen(
                 OutlinedButton(onClick = onNavigateToProjection, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.AutoMirrored.Filled.ShowChart, contentDescription = null)
                     Text("Weight Loss Projection", modifier = Modifier.padding(start = 4.dp))
+                }
+                OutlinedButton(onClick = onNavigateToMilestones, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Celebration, contentDescription = null)
+                    Text("Milestone Log", modifier = Modifier.padding(start = 4.dp))
                 }
             }
         }

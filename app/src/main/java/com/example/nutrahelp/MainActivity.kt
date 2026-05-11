@@ -42,6 +42,10 @@ import com.example.nutrahelp.ui.FastingTimerScreen
 import com.example.nutrahelp.ui.FiberTrackerScreen
 import com.example.nutrahelp.ui.AlcoholTrackerScreen
 import com.example.nutrahelp.ui.BodyFatTrackerScreen
+import com.example.nutrahelp.ui.DailyCheckInScreen
+import com.example.nutrahelp.ui.GutHealthLogScreen
+import com.example.nutrahelp.ui.MilestoneLogScreen
+import com.example.nutrahelp.ui.SodiumTrackerScreen
 import com.example.nutrahelp.ui.EnergyLevelLogScreen
 import com.example.nutrahelp.ui.MoodTrackerScreen
 import com.example.nutrahelp.ui.VitaminMicronutrientLogScreen
@@ -127,7 +131,8 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToSettings = { navController.navigate("settings") },
                                 onNavigateToFasting = { navController.navigate("fasting") },
                                 onNavigateToHabits = { navController.navigate("habits") },
-                                onNavigateToWater = { navController.navigate("water") }
+                                onNavigateToWater = { navController.navigate("water") },
+                                onNavigateToDailyCheckIn = { navController.navigate("checkin") }
                             )
                         }
                         composable("log")      {
@@ -150,7 +155,9 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToAlcohol = { navController.navigate("alcohol") },
                                 onNavigateToMood = { navController.navigate("mood") },
                                 onNavigateToEnergy = { navController.navigate("energy") },
-                                onNavigateToVitamins = { navController.navigate("vitamins") }
+                                onNavigateToVitamins = { navController.navigate("vitamins") },
+                                onNavigateToSodium = { navController.navigate("sodium") },
+                                onNavigateToGutHealth = { navController.navigate("guthealth") }
                             )
                         }
                         composable("meals")    {
@@ -174,7 +181,8 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToA1C = { navController.navigate("a1c") },
                                 onNavigateToNsv = { navController.navigate("nsv") },
                                 onNavigateToBodyFat = { navController.navigate("bodyfat") },
-                                onNavigateToProjection = { navController.navigate("projection") }
+                                onNavigateToProjection = { navController.navigate("projection") },
+                                onNavigateToMilestones = { navController.navigate("milestones") }
                             )
                         }
                         composable("tips")     { TipsScreen() }
@@ -228,6 +236,10 @@ class MainActivity : ComponentActivity() {
                         composable("energy")          { EnergyLevelLogScreen(onBack = { navController.popBackStack() }) }
                         composable("vitamins")        { VitaminMicronutrientLogScreen(onBack = { navController.popBackStack() }) }
                         composable("projection")      { WeightLossProjectionScreen(onBack = { navController.popBackStack() }) }
+                        composable("checkin")         { DailyCheckInScreen(onBack = { navController.popBackStack() }) }
+                        composable("sodium")          { SodiumTrackerScreen(onBack = { navController.popBackStack() }) }
+                        composable("guthealth")       { GutHealthLogScreen(onBack = { navController.popBackStack() }) }
+                        composable("milestones")      { MilestoneLogScreen(onBack = { navController.popBackStack() }) }
                     }
                 }
             }
