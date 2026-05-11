@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import com.example.nutrahelp.ui.FoodSilhouetteBackground
 import com.example.nutrahelp.ui.LoadingScreen
 import com.example.nutrahelp.ui.LocalUseMetric
+import com.example.nutrahelp.ui.OnboardingScreen
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -108,6 +109,7 @@ import com.example.nutrahelp.ui.TipsScreen
 import com.example.nutrahelp.ui.theme.NutraHelpTheme
 
 private data class NavItem(val route: String, val label: String, val icon: ImageVector)
+private enum class AppScreen { LOADING, ONBOARDING, MAIN }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -131,6 +133,8 @@ class MainActivity : ComponentActivity() {
         }
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val prefs = getSharedPreferences("nutrahelp_prefs", MODE_PRIVATE)
+        val needsOnboarding = !prefs.getBoolean("onboarding_complete", false)
         setContent {
                 var themePreference by remember { mutableStateOf("System") }
                 var useMetric by remember { mutableStateOf(true) }
@@ -141,17 +145,27 @@ class MainActivity : ComponentActivity() {
                     else -> systemDark
                 }
             NutraHelpTheme(darkTheme = darkTheme) {
-                var isLoading by remember { mutableStateOf(true) }
+                var appScreen by remember { mutableStateOf(AppScreen.LOADING) }
                 AnimatedContent(
-                    targetState = isLoading,
+                    targetState = appScreen,
                     transitionSpec = {
                         fadeIn(tween(400)) togetherWith fadeOut(tween(300))
                     },
-                    label = "loading_transition",
-                ) { loading ->
-                if (loading) {
-                    LoadingScreen(onLoadingComplete = { isLoading = false })
-                } else {
+                    label = "screen_transition",
+                ) { screen ->
+                when (screen) {
+                    AppScreen.LOADING -> LoadingScreen(
+                        onLoadingComplete = {
+                            appScreen = if (needsOnboarding) AppScreen.ONBOARDING else AppScreen.MAIN
+                        }
+                    )
+                    AppScreen.ONBOARDING -> OnboardingScreen(
+                        onFinished = {
+                            prefs.edit().putBoolean("onboarding_complete", true).apply()
+                            appScreen = AppScreen.MAIN
+                        }
+                    )
+                    AppScreen.MAIN -> {
                 val navController = rememberNavController()
                 val navItems = listOf(
                     NavItem("home",     "Home",     Icons.Default.Home),
@@ -338,7 +352,8 @@ class MainActivity : ComponentActivity() {
                     } // end FoodSilhouetteBackground
                     } // end CompositionLocalProvider
                 }
-                } // end else
+                } // end AppScreen.MAIN
+                } // end when
                 } // end AnimatedContent
             }
         }
