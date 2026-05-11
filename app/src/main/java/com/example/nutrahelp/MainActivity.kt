@@ -160,8 +160,12 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                     AppScreen.ONBOARDING -> OnboardingScreen(
-                        onFinished = {
-                            prefs.edit().putBoolean("onboarding_complete", true).apply()
+                        onFinished = { name, goal ->
+                            prefs.edit()
+                                .putBoolean("onboarding_complete", true)
+                                .putString("user_name", name)
+                                .putString("primary_goal", goal)
+                                .apply()
                             appScreen = AppScreen.MAIN
                         }
                     )
