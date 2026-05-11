@@ -20,6 +20,8 @@ import androidx.compose.material.icons.filled.Bloodtype
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.MoodBad
 import androidx.compose.material.icons.filled.Medication
+import androidx.compose.material.icons.filled.Biotech
+import androidx.compose.material.icons.filled.Grass
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.SentimentNeutral
 import androidx.compose.material3.AlertDialog
@@ -53,7 +55,9 @@ fun LogScreen(
     onNavigateToBloodSugar: () -> Unit = {},
     onNavigateToSleep: () -> Unit = {},
     onNavigateToMacros: () -> Unit = {},
-    onNavigateToStress: () -> Unit = {}
+    onNavigateToStress: () -> Unit = {},
+    onNavigateToGlp1: () -> Unit = {},
+    onNavigateToFiber: () -> Unit = {}
 ) {
     var loggedMeals by remember { mutableStateOf(listOf<LogEntry>()) }
     var dialogCategory by remember { mutableStateOf<MealCategory?>(null) }
@@ -128,6 +132,21 @@ fun LogScreen(
                         Icon(Icons.Default.SentimentNeutral, contentDescription = null)
                         Spacer(Modifier.padding(horizontal = 2.dp))
                         Text("Stress")
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(onClick = onNavigateToGlp1, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Biotech, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("GLP-1 Log")
+                    }
+                    OutlinedButton(onClick = onNavigateToFiber, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Grass, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Fiber")
                     }
                 }
             }

@@ -33,12 +33,16 @@ import com.example.nutrahelp.ui.MealPlanScreen
 import com.example.nutrahelp.ui.AppointmentTrackerScreen
 import com.example.nutrahelp.ui.BloodPressureLogScreen
 import com.example.nutrahelp.ui.BloodSugarLogScreen
+import com.example.nutrahelp.ui.CholesterolLogScreen
 import com.example.nutrahelp.ui.BodyMeasurementsScreen
 import com.example.nutrahelp.ui.BmiStatsScreen
 import com.example.nutrahelp.ui.DailyJournalScreen
 import com.example.nutrahelp.ui.FastingTimerScreen
+import com.example.nutrahelp.ui.FiberTrackerScreen
+import com.example.nutrahelp.ui.Glp1InjectionLogScreen
 import com.example.nutrahelp.ui.GoalTrackerScreen
 import com.example.nutrahelp.ui.HabitTrackerScreen
+import com.example.nutrahelp.ui.HeartRateLogScreen
 import com.example.nutrahelp.ui.ExerciseLogScreen
 import com.example.nutrahelp.ui.LabResultsScreen
 import com.example.nutrahelp.ui.MacroTrackerScreen
@@ -119,7 +123,9 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToBloodSugar = { navController.navigate("bloodsugar") },
                                 onNavigateToSleep = { navController.navigate("sleep") },
                                 onNavigateToMacros = { navController.navigate("macros") },
-                                onNavigateToStress = { navController.navigate("stress") }
+                                onNavigateToStress = { navController.navigate("stress") },
+                                onNavigateToGlp1 = { navController.navigate("glp1") },
+                                onNavigateToFiber = { navController.navigate("fiber") }
                             )
                         }
                         composable("meals")    {
@@ -136,7 +142,9 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToLab = { navController.navigate("lab") },
                                 onNavigateToGoals = { navController.navigate("goals") },
                                 onNavigateToMeasurements = { navController.navigate("measurements") },
-                                onNavigateToBloodPressure = { navController.navigate("bloodpressure") }
+                                onNavigateToBloodPressure = { navController.navigate("bloodpressure") },
+                                onNavigateToHeartRate = { navController.navigate("heartrate") },
+                                onNavigateToCholesterol = { navController.navigate("cholesterol") }
                             )
                         }
                         composable("tips")     { TipsScreen() }
@@ -170,7 +178,11 @@ class MainActivity : ComponentActivity() {
                         composable("water")         { WaterIntakeLogScreen(onBack = { navController.popBackStack() }) }
                         composable("macros")        { MacroTrackerScreen(onBack = { navController.popBackStack() }) }
                         composable("bloodpressure") { BloodPressureLogScreen(onBack = { navController.popBackStack() }) }
-                        composable("stress")        { StressTrackerScreen(onBack = { navController.popBackStack() }) }
+                        composable("stress")       { StressTrackerScreen(onBack = { navController.popBackStack() }) }
+                        composable("glp1")         { Glp1InjectionLogScreen(onBack = { navController.popBackStack() }) }
+                        composable("fiber")        { FiberTrackerScreen(onBack = { navController.popBackStack() }) }
+                        composable("heartrate")    { HeartRateLogScreen(onBack = { navController.popBackStack() }) }
+                        composable("cholesterol")  { CholesterolLogScreen(onBack = { navController.popBackStack() }) }
                     }
                 }
             }

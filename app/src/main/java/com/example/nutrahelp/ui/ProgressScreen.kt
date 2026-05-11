@@ -32,8 +32,10 @@ import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Straighten
+import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.Icon
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
@@ -49,7 +51,9 @@ fun ProgressScreen(
     onNavigateToLab: () -> Unit = {},
     onNavigateToGoals: () -> Unit = {},
     onNavigateToMeasurements: () -> Unit = {},
-    onNavigateToBloodPressure: () -> Unit = {}
+    onNavigateToBloodPressure: () -> Unit = {},
+    onNavigateToHeartRate: () -> Unit = {},
+    onNavigateToCholesterol: () -> Unit = {}
 ) {
     var weightInput by remember { mutableStateOf("") }
     var useKg by remember { mutableStateOf(true) }
@@ -102,6 +106,19 @@ fun ProgressScreen(
                 OutlinedButton(onClick = onNavigateToBloodPressure, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.Favorite, contentDescription = null)
                     Text("Blood Pressure", modifier = Modifier.padding(start = 4.dp))
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(onClick = onNavigateToHeartRate, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.MonitorHeart, contentDescription = null)
+                        Text("Heart Rate", modifier = Modifier.padding(start = 4.dp))
+                    }
+                    OutlinedButton(onClick = onNavigateToCholesterol, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.WaterDrop, contentDescription = null)
+                        Text("Cholesterol", modifier = Modifier.padding(start = 4.dp))
+                    }
                 }
             }
         }
