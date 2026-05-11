@@ -31,12 +31,16 @@ import com.example.nutrahelp.ui.HomeScreen
 import com.example.nutrahelp.ui.LogScreen
 import com.example.nutrahelp.ui.MealPlanScreen
 import com.example.nutrahelp.ui.BmiStatsScreen
+import com.example.nutrahelp.ui.DailyJournalScreen
+import com.example.nutrahelp.ui.ExerciseLogScreen
+import com.example.nutrahelp.ui.LabResultsScreen
 import com.example.nutrahelp.ui.MedicationTrackerScreen
 import com.example.nutrahelp.ui.ProfileScreen
 import com.example.nutrahelp.ui.ProgressScreen
 import com.example.nutrahelp.ui.RecipesScreen
 import com.example.nutrahelp.ui.SettingsScreen
 import com.example.nutrahelp.ui.SideEffectsScreen
+import com.example.nutrahelp.ui.SupplementTrackerScreen
 import com.example.nutrahelp.ui.TipsScreen
 import com.example.nutrahelp.ui.theme.NutraHelpTheme
 
@@ -93,7 +97,11 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("log")      {
-                            LogScreen(onNavigateToSideEffects = { navController.navigate("sideeffects") })
+                            LogScreen(
+                                onNavigateToSideEffects = { navController.navigate("sideeffects") },
+                                onNavigateToSupplements = { navController.navigate("supplements") },
+                                onNavigateToJournal = { navController.navigate("journal") }
+                            )
                         }
                         composable("meals")    {
                             MealPlanScreen(
@@ -102,7 +110,11 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("progress") {
-                            ProgressScreen(onNavigateToStats = { navController.navigate("bmi") })
+                            ProgressScreen(
+                                onNavigateToStats = { navController.navigate("bmi") },
+                                onNavigateToExercise = { navController.navigate("exercise") },
+                                onNavigateToLab = { navController.navigate("lab") }
+                            )
                         }
                         composable("tips")     { TipsScreen() }
                         composable("grocery")  {
@@ -117,7 +129,11 @@ class MainActivity : ComponentActivity() {
                         composable("recipes")    { RecipesScreen(onBack = { navController.popBackStack() }) }
                         composable("medication") { MedicationTrackerScreen(onBack = { navController.popBackStack() }) }
                         composable("sideeffects") { SideEffectsScreen(onBack = { navController.popBackStack() }) }
-                        composable("bmi")        { BmiStatsScreen(onBack = { navController.popBackStack() }) }
+                        composable("bmi")         { BmiStatsScreen(onBack = { navController.popBackStack() }) }
+                        composable("exercise")    { ExerciseLogScreen(onBack = { navController.popBackStack() }) }
+                        composable("lab")         { LabResultsScreen(onBack = { navController.popBackStack() }) }
+                        composable("supplements") { SupplementTrackerScreen(onBack = { navController.popBackStack() }) }
+                        composable("journal")     { DailyJournalScreen(onBack = { navController.popBackStack() }) }
                         composable("settings") {
                             SettingsScreen(onBack = { navController.popBackStack() })
                         }

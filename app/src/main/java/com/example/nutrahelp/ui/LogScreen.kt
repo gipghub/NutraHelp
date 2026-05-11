@@ -15,7 +15,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.MoodBad
+import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -40,7 +42,11 @@ import com.example.nutrahelp.data.sampleMeals
 private data class LogEntry(val id: Long = System.nanoTime(), val meal: Meal)
 
 @Composable
-fun LogScreen(onNavigateToSideEffects: () -> Unit = {}) {
+fun LogScreen(
+    onNavigateToSideEffects: () -> Unit = {},
+    onNavigateToSupplements: () -> Unit = {},
+    onNavigateToJournal: () -> Unit = {}
+) {
     var loggedMeals by remember { mutableStateOf(listOf<LogEntry>()) }
     var dialogCategory by remember { mutableStateOf<MealCategory?>(null) }
 
@@ -64,16 +70,27 @@ fun LogScreen(onNavigateToSideEffects: () -> Unit = {}) {
         modifier = Modifier.fillMaxSize()
     ) {
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Today's Log", style = MaterialTheme.typography.headlineSmall)
-                OutlinedButton(onClick = onNavigateToSideEffects) {
-                    Icon(Icons.Default.MoodBad, contentDescription = null)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(onClick = onNavigateToSideEffects, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.MoodBad, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Symptoms")
+                    }
+                    OutlinedButton(onClick = onNavigateToSupplements, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Medication, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Supplements")
+                    }
+                }
+                OutlinedButton(onClick = onNavigateToJournal, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Create, contentDescription = null)
                     Spacer(Modifier.padding(horizontal = 4.dp))
-                    Text("Side Effects")
+                    Text("Daily Journal")
                 }
             }
         }

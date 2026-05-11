@@ -29,6 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Science
 import androidx.compose.material3.Icon
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
@@ -38,7 +40,11 @@ import java.util.Locale
 private data class WeightEntry(val date: String, val weight: Float, val unit: String)
 
 @Composable
-fun ProgressScreen(onNavigateToStats: () -> Unit = {}) {
+fun ProgressScreen(
+    onNavigateToStats: () -> Unit = {},
+    onNavigateToExercise: () -> Unit = {},
+    onNavigateToLab: () -> Unit = {}
+) {
     var weightInput by remember { mutableStateOf("") }
     var useKg by remember { mutableStateOf(true) }
     var entries by remember { mutableStateOf(listOf<WeightEntry>()) }
@@ -55,15 +61,24 @@ fun ProgressScreen(onNavigateToStats: () -> Unit = {}) {
         modifier = Modifier.fillMaxSize()
     ) {
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Weight Progress", style = MaterialTheme.typography.headlineSmall)
-                OutlinedButton(onClick = onNavigateToStats) {
-                    Icon(Icons.Default.Calculate, contentDescription = null)
-                    Text("BMI & Stats", modifier = Modifier.padding(start = 4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(onClick = onNavigateToStats, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Calculate, contentDescription = null)
+                        Text("BMI & Stats", modifier = Modifier.padding(start = 4.dp))
+                    }
+                    OutlinedButton(onClick = onNavigateToExercise, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.FitnessCenter, contentDescription = null)
+                        Text("Exercise", modifier = Modifier.padding(start = 4.dp))
+                    }
+                }
+                OutlinedButton(onClick = onNavigateToLab, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Science, contentDescription = null)
+                    Text("Lab Results", modifier = Modifier.padding(start = 4.dp))
                 }
             }
         }
