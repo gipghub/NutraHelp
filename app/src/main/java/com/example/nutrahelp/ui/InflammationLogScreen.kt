@@ -38,11 +38,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 
 private val inflammationSymptoms = listOf(
     "Joint Pain", "Swelling", "Fatigue", "Skin Redness", "Muscle Ache",
@@ -68,7 +68,8 @@ private fun inflammationSeverityColor(severity: Int) = when (severity) {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun InflammationLogScreen(onBack: () -> Unit) {
-    val today = SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date())
+    val locale = LocalConfiguration.current.locales[0]
+    val today = remember(locale) { SimpleDateFormat("MMM d, yyyy", locale).format(Date()) }
 
     var selectedSymptoms by remember { mutableStateOf(setOf<String>()) }
     var selectedSeverity by remember { mutableIntStateOf(0) }
