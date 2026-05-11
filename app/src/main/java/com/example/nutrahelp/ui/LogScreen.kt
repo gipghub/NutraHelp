@@ -37,7 +37,9 @@ import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material.icons.filled.Cake
+import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.LocalCafe
+import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -87,7 +89,9 @@ fun LogScreen(
     onNavigateToGutHealth: () -> Unit = {},
     onNavigateToSugar: () -> Unit = {},
     onNavigateToCaffeine: () -> Unit = {},
-    onNavigateToInflammation: () -> Unit = {}
+    onNavigateToInflammation: () -> Unit = {},
+    onNavigateToCravings: () -> Unit = {},
+    onNavigateToHydration: () -> Unit = {}
 ) {
     var loggedMeals by remember { mutableStateOf(listOf<LogEntry>()) }
     var dialogCategory by remember { mutableStateOf<MealCategory?>(null) }
@@ -283,6 +287,21 @@ fun LogScreen(
                     Icon(Icons.Default.Thermostat, contentDescription = null)
                     Spacer(Modifier.padding(horizontal = 2.dp))
                     Text("Inflammation Log")
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(onClick = onNavigateToCravings, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Fastfood, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Cravings")
+                    }
+                    OutlinedButton(onClick = onNavigateToHydration, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.LocalDrink, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Hydration")
+                    }
                 }
             }
         }

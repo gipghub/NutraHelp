@@ -85,6 +85,8 @@ import com.example.nutrahelp.ui.SugarTrackerScreen
 import com.example.nutrahelp.ui.CaffeineTrackerScreen
 import com.example.nutrahelp.ui.RecipeNutritionCalculatorScreen
 import com.example.nutrahelp.ui.InflammationLogScreen
+import com.example.nutrahelp.ui.CravingLogScreen
+import com.example.nutrahelp.ui.HydrationCalculatorScreen
 import com.example.nutrahelp.ui.PortionSizeGuideScreen
 import com.example.nutrahelp.ui.BmrTdeeCalculatorScreen
 import com.example.nutrahelp.ui.TipsScreen
@@ -173,7 +175,9 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToGutHealth = { navController.navigate("guthealth") },
                                 onNavigateToSugar = { navController.navigate("sugar") },
                                 onNavigateToCaffeine = { navController.navigate("caffeine") },
-                                onNavigateToInflammation = { navController.navigate("inflammation") }
+                                onNavigateToInflammation = { navController.navigate("inflammation") },
+                                onNavigateToCravings = { navController.navigate("cravings") },
+                                onNavigateToHydration = { navController.navigate("hydration") }
                             )
                         }
                         composable("meals")    {
@@ -269,6 +273,8 @@ class MainActivity : ComponentActivity() {
                         composable("caffeine")        { CaffeineTrackerScreen(onBack = { navController.popBackStack() }) }
                         composable("recipecalc")      { RecipeNutritionCalculatorScreen(onBack = { navController.popBackStack() }) }
                         composable("inflammation")    { InflammationLogScreen(onBack = { navController.popBackStack() }) }
+                        composable("cravings")       { CravingLogScreen(onBack = { navController.popBackStack() }) }
+                        composable("hydration")      { HydrationCalculatorScreen(onBack = { navController.popBackStack() }) }
                         composable("portionguide")   { PortionSizeGuideScreen(onBack = { navController.popBackStack() }) }
                         composable("bmrtdee")        { BmrTdeeCalculatorScreen(onBack = { navController.popBackStack() }) }
                     }
