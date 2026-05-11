@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Bloodtype
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.MoodBad
@@ -47,7 +48,8 @@ fun LogScreen(
     onNavigateToSideEffects: () -> Unit = {},
     onNavigateToSupplements: () -> Unit = {},
     onNavigateToJournal: () -> Unit = {},
-    onNavigateToBloodSugar: () -> Unit = {}
+    onNavigateToBloodSugar: () -> Unit = {},
+    onNavigateToSleep: () -> Unit = {}
 ) {
     var loggedMeals by remember { mutableStateOf(listOf<LogEntry>()) }
     var dialogCategory by remember { mutableStateOf<MealCategory?>(null) }
@@ -103,6 +105,11 @@ fun LogScreen(
                         Spacer(Modifier.padding(horizontal = 2.dp))
                         Text("Journal")
                     }
+                }
+                OutlinedButton(onClick = onNavigateToSleep, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Bedtime, contentDescription = null)
+                    Spacer(Modifier.padding(horizontal = 2.dp))
+                    Text("Sleep Tracker")
                 }
             }
         }

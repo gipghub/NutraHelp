@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.Kitchen
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -38,7 +39,8 @@ import com.example.nutrahelp.data.sampleMeals
 @Composable
 fun MealPlanScreen(
     onNavigateToGrocery: () -> Unit = {},
-    onNavigateToRecipes: () -> Unit = {}
+    onNavigateToRecipes: () -> Unit = {},
+    onNavigateToMealPrep: () -> Unit = {}
 ) {
     val categories = MealCategory.entries
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -77,6 +79,16 @@ fun MealPlanScreen(
                     Icon(Icons.Default.ShoppingCart, contentDescription = null)
                     Spacer(Modifier.padding(horizontal = 4.dp))
                     Text("View Grocery List")
+                }
+            }
+            item {
+                OutlinedButton(
+                    onClick = onNavigateToMealPrep,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.Kitchen, contentDescription = null)
+                    Spacer(Modifier.padding(horizontal = 4.dp))
+                    Text("Meal Prep Planner")
                 }
             }
             items(meals) { meal ->

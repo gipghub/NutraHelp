@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -44,7 +45,8 @@ import java.util.Locale
 fun HomeScreen(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
-    onNavigateToFasting: () -> Unit = {}
+    onNavigateToFasting: () -> Unit = {},
+    onNavigateToHabits: () -> Unit = {}
 ) {
     var waterGlasses by remember { mutableIntStateOf(0) }
     var proteinGrams by remember { mutableIntStateOf(0) }
@@ -140,6 +142,15 @@ fun HomeScreen(
             Icon(Icons.Default.Timer, contentDescription = null)
             Spacer(Modifier.width(8.dp))
             Text("Intermittent Fasting Timer")
+        }
+
+        OutlinedButton(
+            onClick = onNavigateToHabits,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.AutoMirrored.Filled.EventNote, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Habit Tracker")
         }
 
         Card(modifier = Modifier.fillMaxWidth()) {

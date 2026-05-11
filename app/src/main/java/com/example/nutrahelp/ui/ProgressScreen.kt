@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Science
+import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material3.Icon
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
@@ -45,7 +46,8 @@ fun ProgressScreen(
     onNavigateToStats: () -> Unit = {},
     onNavigateToExercise: () -> Unit = {},
     onNavigateToLab: () -> Unit = {},
-    onNavigateToGoals: () -> Unit = {}
+    onNavigateToGoals: () -> Unit = {},
+    onNavigateToMeasurements: () -> Unit = {}
 ) {
     var weightInput by remember { mutableStateOf("") }
     var useKg by remember { mutableStateOf(true) }
@@ -90,6 +92,10 @@ fun ProgressScreen(
                         Icon(Icons.Default.Flag, contentDescription = null)
                         Text("Goals", modifier = Modifier.padding(start = 4.dp))
                     }
+                }
+                OutlinedButton(onClick = onNavigateToMeasurements, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Straighten, contentDescription = null)
+                    Text("Body Measurements", modifier = Modifier.padding(start = 4.dp))
                 }
             }
         }
