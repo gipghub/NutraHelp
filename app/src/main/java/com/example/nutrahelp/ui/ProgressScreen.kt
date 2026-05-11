@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.WaterDrop
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.Icon
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
@@ -57,7 +58,8 @@ fun ProgressScreen(
     onNavigateToHeartRate: () -> Unit = {},
     onNavigateToCholesterol: () -> Unit = {},
     onNavigateToSteps: () -> Unit = {},
-    onNavigateToA1C: () -> Unit = {}
+    onNavigateToA1C: () -> Unit = {},
+    onNavigateToNsv: () -> Unit = {}
 ) {
     var weightInput by remember { mutableStateOf("") }
     var useKg by remember { mutableStateOf(true) }
@@ -136,6 +138,10 @@ fun ProgressScreen(
                         Icon(Icons.Default.Bloodtype, contentDescription = null)
                         Text("A1C", modifier = Modifier.padding(start = 4.dp))
                     }
+                }
+                OutlinedButton(onClick = onNavigateToNsv, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.EmojiEvents, contentDescription = null)
+                    Text("NSV Log", modifier = Modifier.padding(start = 4.dp))
                 }
             }
         }

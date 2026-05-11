@@ -26,6 +26,8 @@ import androidx.compose.material.icons.filled.NoFood
 import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.SentimentNeutral
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -61,7 +63,9 @@ fun LogScreen(
     onNavigateToGlp1: () -> Unit = {},
     onNavigateToFiber: () -> Unit = {},
     onNavigateToFoodSensitivity: () -> Unit = {},
-    onNavigateToMindfulEating: () -> Unit = {}
+    onNavigateToMindfulEating: () -> Unit = {},
+    onNavigateToCalories: () -> Unit = {},
+    onNavigateToProtein: () -> Unit = {}
 ) {
     var loggedMeals by remember { mutableStateOf(listOf<LogEntry>()) }
     var dialogCategory by remember { mutableStateOf<MealCategory?>(null) }
@@ -166,6 +170,21 @@ fun LogScreen(
                         Icon(Icons.Default.SelfImprovement, contentDescription = null)
                         Spacer(Modifier.padding(horizontal = 2.dp))
                         Text("Mindful")
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(onClick = onNavigateToCalories, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.LocalFireDepartment, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Calories")
+                    }
+                    OutlinedButton(onClick = onNavigateToProtein, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.FitnessCenter, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Protein")
                     }
                 }
             }

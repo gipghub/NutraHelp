@@ -40,8 +40,11 @@ import com.example.nutrahelp.ui.BmiStatsScreen
 import com.example.nutrahelp.ui.DailyJournalScreen
 import com.example.nutrahelp.ui.FastingTimerScreen
 import com.example.nutrahelp.ui.FiberTrackerScreen
+import com.example.nutrahelp.ui.CalorieDeficitTrackerScreen
 import com.example.nutrahelp.ui.FoodSensitivityLogScreen
 import com.example.nutrahelp.ui.Glp1InjectionLogScreen
+import com.example.nutrahelp.ui.NsvLogScreen
+import com.example.nutrahelp.ui.ProteinSourceLogScreen
 import com.example.nutrahelp.ui.GoalTrackerScreen
 import com.example.nutrahelp.ui.HabitTrackerScreen
 import com.example.nutrahelp.ui.HeartRateLogScreen
@@ -131,7 +134,9 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToGlp1 = { navController.navigate("glp1") },
                                 onNavigateToFiber = { navController.navigate("fiber") },
                                 onNavigateToFoodSensitivity = { navController.navigate("foodsensitivity") },
-                                onNavigateToMindfulEating = { navController.navigate("mindfuleating") }
+                                onNavigateToMindfulEating = { navController.navigate("mindfuleating") },
+                                onNavigateToCalories = { navController.navigate("calories") },
+                                onNavigateToProtein = { navController.navigate("protein") }
                             )
                         }
                         composable("meals")    {
@@ -152,7 +157,8 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToHeartRate = { navController.navigate("heartrate") },
                                 onNavigateToCholesterol = { navController.navigate("cholesterol") },
                                 onNavigateToSteps = { navController.navigate("steps") },
-                                onNavigateToA1C = { navController.navigate("a1c") }
+                                onNavigateToA1C = { navController.navigate("a1c") },
+                                onNavigateToNsv = { navController.navigate("nsv") }
                             )
                         }
                         composable("tips")     { TipsScreen() }
@@ -195,6 +201,9 @@ class MainActivity : ComponentActivity() {
                         composable("a1c")             { A1CTrackerScreen(onBack = { navController.popBackStack() }) }
                         composable("foodsensitivity") { FoodSensitivityLogScreen(onBack = { navController.popBackStack() }) }
                         composable("mindfuleating")   { MindfulEatingLogScreen(onBack = { navController.popBackStack() }) }
+                        composable("nsv")             { NsvLogScreen(onBack = { navController.popBackStack() }) }
+                        composable("calories")        { CalorieDeficitTrackerScreen(onBack = { navController.popBackStack() }) }
+                        composable("protein")         { ProteinSourceLogScreen(onBack = { navController.popBackStack() }) }
                     }
                 }
             }
