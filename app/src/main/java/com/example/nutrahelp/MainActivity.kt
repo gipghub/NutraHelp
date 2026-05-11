@@ -23,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.example.nutrahelp.ui.FoodSilhouetteBackground
 import com.example.nutrahelp.ui.LocalUseMetric
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -145,6 +146,7 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { innerPadding ->
                     CompositionLocalProvider(LocalUseMetric provides useMetric) {
+                    FoodSilhouetteBackground {
                     NavHost(
                         navController = navController,
                         startDestination = "home",
@@ -294,6 +296,7 @@ class MainActivity : ComponentActivity() {
                         composable("nausea")         { NauseaLogScreen(onBack = { navController.popBackStack() }) }
                         composable("injectionsites") { InjectionSiteTrackerScreen(onBack = { navController.popBackStack() }) }
                     }
+                    } // end FoodSilhouetteBackground
                     } // end CompositionLocalProvider
                 }
             }
