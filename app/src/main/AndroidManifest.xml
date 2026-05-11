@@ -14,7 +14,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.NutraHelp">
+            android:theme="@style/Theme.NutraHelp.SplashScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
