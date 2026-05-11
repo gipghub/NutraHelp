@@ -16,6 +16,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -102,8 +103,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            NutraHelpTheme {
+                var themePreference by remember { mutableStateOf("System") }
                 var useMetric by remember { mutableStateOf(true) }
+                val systemDark = isSystemInDarkTheme()
+                val darkTheme = when (themePreference) {
+                    "Dark" -> true
+                    "Light" -> false
+                    else -> systemDark
+                }
+            NutraHelpTheme(darkTheme = darkTheme) {
                 val navController = rememberNavController()
                 val navItems = listOf(
                     NavItem("home",     "Home",     Icons.Default.Home),
@@ -239,7 +247,9 @@ class MainActivity : ComponentActivity() {
                             SettingsScreen(
                                 onBack = { navController.popBackStack() },
                                 useMetric = useMetric,
-                                onUseMetricChange = { useMetric = it }
+                                onUseMetricChange = { useMetric = it },
+                                themePreference = themePreference,
+                                onThemeChange = { themePreference = it }
                             )
                         }
                         composable("measurements") { BodyMeasurementsScreen(onBack = { navController.popBackStack() }) }

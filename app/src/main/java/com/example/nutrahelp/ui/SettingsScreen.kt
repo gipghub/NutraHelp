@@ -39,13 +39,13 @@ import androidx.compose.ui.unit.dp
 fun SettingsScreen(
     onBack: () -> Unit,
     useMetric: Boolean = true,
-    onUseMetricChange: (Boolean) -> Unit = {}
+    onUseMetricChange: (Boolean) -> Unit = {},
+    themePreference: String = "System",
+    onThemeChange: (String) -> Unit = {}
 ) {
     var injectionReminder by remember { mutableStateOf(true) }
     var mealReminder by remember { mutableStateOf(false) }
     var waterReminder by remember { mutableStateOf(true) }
-
-    var theme by remember { mutableStateOf("System") }
 
     var clearLogDialog by remember { mutableStateOf(false) }
     var clearWeightDialog by remember { mutableStateOf(false) }
@@ -148,8 +148,8 @@ fun SettingsScreen(
                     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                         themes.forEachIndexed { index, label ->
                             SegmentedButton(
-                                selected = theme == label,
-                                onClick = { theme = label },
+                                selected = themePreference == label,
+                                onClick = { onThemeChange(label) },
                                 shape = SegmentedButtonDefaults.itemShape(index = index, count = themes.size),
                                 label = { Text(label) }
                             )
