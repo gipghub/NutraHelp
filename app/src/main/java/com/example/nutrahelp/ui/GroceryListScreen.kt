@@ -34,24 +34,53 @@ private val groceryItems = linkedMapOf(
     "Produce" to listOf(
         "Mixed salad greens", "Baby spinach", "Cherry tomatoes", "Cucumber",
         "Bell peppers (red & yellow)", "Bok choy", "Broccoli florets",
-        "Fresh berries (blueberries, strawberries)", "Banana", "Avocado"
+        "Fresh berries (blueberries, strawberries)", "Banana", "Avocado",
+        "Zucchini", "Asparagus", "Brussels sprouts", "Cauliflower",
+        "Sweet potato", "Kale", "Celery", "Romaine lettuce",
+        "Lemon", "Lime", "Garlic", "Fresh ginger", "Yellow onion",
+        "Peaches", "Apples", "Edamame (frozen, shelled)"
     ),
     "Protein" to listOf(
         "Chicken breast (boneless, skinless)", "Lean ground turkey",
         "Sirloin steak", "Salmon fillet", "Eggs (1 dozen)",
-        "Silken tofu", "Whey protein powder"
+        "Silken tofu", "Whey protein powder",
+        "Shrimp (peeled & deveined)", "Cod or tilapia fillet",
+        "Canned wild-caught tuna (in water)", "Smoked salmon",
+        "Deli turkey slices (low-sodium)", "Chicken thighs (skinless)",
+        "Black beans (canned, low-sodium)", "Kidney beans (canned)",
+        "Chickpeas (canned)", "Protein bars (≥15g protein, low sugar)"
     ),
     "Dairy & Alternatives" to listOf(
         "Plain nonfat Greek yogurt", "Low-fat cottage cheese",
-        "String cheese sticks", "Unsweetened almond milk"
+        "String cheese sticks", "Unsweetened almond milk",
+        "Low-fat cream cheese", "Feta cheese (crumbled)",
+        "Parmesan cheese (grated)", "Unsweetened oat milk"
     ),
     "Grains & Legumes" to listOf(
         "Quinoa", "Brown rice", "Low-sugar granola",
-        "Green or brown lentils", "Chia seeds"
+        "Green or brown lentils", "Chia seeds",
+        "Rolled oats", "Whole-wheat tortillas (small)",
+        "Whole-grain bread", "Corn tortillas", "Brown rice cakes"
     ),
     "Pantry" to listOf(
         "Raw almonds", "Extra-virgin olive oil", "Light vinaigrette dressing",
-        "Low-sodium soy sauce", "Dried herbs & spices"
+        "Low-sodium soy sauce", "Dried herbs & spices",
+        "Natural peanut butter", "Hummus (store-bought)",
+        "Capers", "Dijon mustard", "Apple cider vinegar",
+        "Ponzu sauce", "Smoked paprika", "Garlic powder",
+        "Red pepper flakes", "Chicken or vegetable broth (low-sodium)",
+        "Canned diced tomatoes (no salt added)", "Tomato marinara (low-sugar)",
+        "Chia seeds", "Hemp seeds", "Dill pickles"
+    ),
+    "Frozen" to listOf(
+        "Frozen mixed vegetables", "Frozen cauliflower rice",
+        "Frozen edamame (shelled)", "Frozen berries",
+        "Frozen shrimp", "Frozen broccoli florets"
+    ),
+    "Beverages" to listOf(
+        "Sparkling water (unsweetened)", "Green tea bags",
+        "Herbal tea (ginger or peppermint — good for nausea)",
+        "Electrolyte packets (no sugar)", "Black coffee"
     )
 )
 
