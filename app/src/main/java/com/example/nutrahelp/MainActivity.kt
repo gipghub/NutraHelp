@@ -9,6 +9,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.animation.doOnEnd
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.NoteAdd
@@ -29,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.nutrahelp.ui.FoodSilhouetteBackground
+import com.example.nutrahelp.ui.LoadingScreen
 import com.example.nutrahelp.ui.LocalUseMetric
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -135,6 +141,17 @@ class MainActivity : ComponentActivity() {
                     else -> systemDark
                 }
             NutraHelpTheme(darkTheme = darkTheme) {
+                var isLoading by remember { mutableStateOf(true) }
+                AnimatedContent(
+                    targetState = isLoading,
+                    transitionSpec = {
+                        fadeIn(tween(400)) togetherWith fadeOut(tween(300))
+                    },
+                    label = "loading_transition",
+                ) { loading ->
+                if (loading) {
+                    LoadingScreen(onLoadingComplete = { isLoading = false })
+                } else {
                 val navController = rememberNavController()
                 val navItems = listOf(
                     NavItem("home",     "Home",     Icons.Default.Home),
@@ -321,6 +338,8 @@ class MainActivity : ComponentActivity() {
                     } // end FoodSilhouetteBackground
                     } // end CompositionLocalProvider
                 }
+                } // end else
+                } // end AnimatedContent
             }
         }
     }
