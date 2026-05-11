@@ -6,11 +6,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.NoteAdd
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.NoteAdd
 import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -30,9 +30,13 @@ import com.example.nutrahelp.ui.GroceryListScreen
 import com.example.nutrahelp.ui.HomeScreen
 import com.example.nutrahelp.ui.LogScreen
 import com.example.nutrahelp.ui.MealPlanScreen
+import com.example.nutrahelp.ui.BmiStatsScreen
+import com.example.nutrahelp.ui.MedicationTrackerScreen
 import com.example.nutrahelp.ui.ProfileScreen
 import com.example.nutrahelp.ui.ProgressScreen
+import com.example.nutrahelp.ui.RecipesScreen
 import com.example.nutrahelp.ui.SettingsScreen
+import com.example.nutrahelp.ui.SideEffectsScreen
 import com.example.nutrahelp.ui.TipsScreen
 import com.example.nutrahelp.ui.theme.NutraHelpTheme
 
@@ -48,9 +52,9 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val navItems = listOf(
                     NavItem("home",     "Home",     Icons.Default.Home),
-                    NavItem("log",      "Log",      Icons.Default.NoteAdd),
+                    NavItem("log",      "Log",      Icons.AutoMirrored.Filled.NoteAdd),
                     NavItem("meals",    "Meals",    Icons.Default.Restaurant),
-                    NavItem("progress", "Progress", Icons.Default.TrendingDown),
+                    NavItem("progress", "Progress", Icons.AutoMirrored.Filled.TrendingDown),
                     NavItem("tips",     "Tips",     Icons.Default.Lightbulb),
                 )
                 Scaffold(
@@ -88,18 +92,32 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToSettings = { navController.navigate("settings") }
                             )
                         }
-                        composable("log")      { LogScreen() }
-                        composable("meals")    {
-                            MealPlanScreen(onNavigateToGrocery = { navController.navigate("grocery") })
+                        composable("log")      {
+                            LogScreen(onNavigateToSideEffects = { navController.navigate("sideeffects") })
                         }
-                        composable("progress") { ProgressScreen() }
+                        composable("meals")    {
+                            MealPlanScreen(
+                                onNavigateToGrocery = { navController.navigate("grocery") },
+                                onNavigateToRecipes = { navController.navigate("recipes") }
+                            )
+                        }
+                        composable("progress") {
+                            ProgressScreen(onNavigateToStats = { navController.navigate("bmi") })
+                        }
                         composable("tips")     { TipsScreen() }
                         composable("grocery")  {
                             GroceryListScreen(onBack = { navController.popBackStack() })
                         }
                         composable("profile")  {
-                            ProfileScreen(onBack = { navController.popBackStack() })
+                            ProfileScreen(
+                                onBack = { navController.popBackStack() },
+                                onNavigateToMedication = { navController.navigate("medication") }
+                            )
                         }
+                        composable("recipes")    { RecipesScreen(onBack = { navController.popBackStack() }) }
+                        composable("medication") { MedicationTrackerScreen(onBack = { navController.popBackStack() }) }
+                        composable("sideeffects") { SideEffectsScreen(onBack = { navController.popBackStack() }) }
+                        composable("bmi")        { BmiStatsScreen(onBack = { navController.popBackStack() }) }
                         composable("settings") {
                             SettingsScreen(onBack = { navController.popBackStack() })
                         }
