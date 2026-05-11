@@ -30,6 +30,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,7 +66,7 @@ private fun formatElapsed(seconds: Long): String {
 fun FastingTimerScreen(onBack: () -> Unit) {
     var isRunning by remember { mutableStateOf(false) }
     var elapsedSeconds by remember { mutableLongStateOf(0L) }
-    var goalHours by remember { mutableStateOf(16) }
+    var goalHours by remember { mutableIntStateOf(16) }
     var sessions by remember { mutableStateOf(listOf<FastingSession>()) }
 
     val goalSeconds = goalHours * 3600L
