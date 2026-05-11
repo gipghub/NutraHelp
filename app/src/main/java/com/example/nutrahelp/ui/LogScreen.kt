@@ -31,6 +31,9 @@ import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Dining
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.LocalBar
+import androidx.compose.material.icons.filled.Mood
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -71,7 +74,10 @@ fun LogScreen(
     onNavigateToProtein: () -> Unit = {},
     onNavigateToHunger: () -> Unit = {},
     onNavigateToMealTiming: () -> Unit = {},
-    onNavigateToAlcohol: () -> Unit = {}
+    onNavigateToAlcohol: () -> Unit = {},
+    onNavigateToMood: () -> Unit = {},
+    onNavigateToEnergy: () -> Unit = {},
+    onNavigateToVitamins: () -> Unit = {}
 ) {
     var loggedMeals by remember { mutableStateOf(listOf<LogEntry>()) }
     var dialogCategory by remember { mutableStateOf<MealCategory?>(null) }
@@ -212,6 +218,26 @@ fun LogScreen(
                     Icon(Icons.Default.LocalBar, contentDescription = null)
                     Spacer(Modifier.padding(horizontal = 2.dp))
                     Text("Alcohol Tracker")
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(onClick = onNavigateToMood, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Mood, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Mood")
+                    }
+                    OutlinedButton(onClick = onNavigateToEnergy, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Bolt, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Energy")
+                    }
+                }
+                OutlinedButton(onClick = onNavigateToVitamins, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.HealthAndSafety, contentDescription = null)
+                    Spacer(Modifier.padding(horizontal = 2.dp))
+                    Text("Vitamins & Nutrients")
                 }
             }
         }

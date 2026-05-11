@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material3.Icon
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
@@ -61,7 +62,8 @@ fun ProgressScreen(
     onNavigateToSteps: () -> Unit = {},
     onNavigateToA1C: () -> Unit = {},
     onNavigateToNsv: () -> Unit = {},
-    onNavigateToBodyFat: () -> Unit = {}
+    onNavigateToBodyFat: () -> Unit = {},
+    onNavigateToProjection: () -> Unit = {}
 ) {
     var weightInput by remember { mutableStateOf("") }
     var useKg by remember { mutableStateOf(true) }
@@ -148,6 +150,10 @@ fun ProgressScreen(
                 OutlinedButton(onClick = onNavigateToBodyFat, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.Analytics, contentDescription = null)
                     Text("Body Fat %", modifier = Modifier.padding(start = 4.dp))
+                }
+                OutlinedButton(onClick = onNavigateToProjection, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.AutoMirrored.Filled.ShowChart, contentDescription = null)
+                    Text("Weight Loss Projection", modifier = Modifier.padding(start = 4.dp))
                 }
             }
         }
