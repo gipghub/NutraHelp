@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.automirrored.filled.EventNote
+import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -46,7 +47,8 @@ fun HomeScreen(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
     onNavigateToFasting: () -> Unit = {},
-    onNavigateToHabits: () -> Unit = {}
+    onNavigateToHabits: () -> Unit = {},
+    onNavigateToWater: () -> Unit = {}
 ) {
     var waterGlasses by remember { mutableIntStateOf(0) }
     var proteinGrams by remember { mutableIntStateOf(0) }
@@ -151,6 +153,15 @@ fun HomeScreen(
             Icon(Icons.AutoMirrored.Filled.EventNote, contentDescription = null)
             Spacer(Modifier.width(8.dp))
             Text("Habit Tracker")
+        }
+
+        OutlinedButton(
+            onClick = onNavigateToWater,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Default.LocalDrink, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Water Intake Log")
         }
 
         Card(modifier = Modifier.fillMaxWidth()) {
