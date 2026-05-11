@@ -1,0 +1,194 @@
+package com.example.nutrahelp.ui
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.example.nutrahelp.data.Meal
+import com.example.nutrahelp.data.MealCategory
+import com.example.nutrahelp.data.sampleMeals
+
+private data class LogEntry(val id: Long = System.nanoTime(), val meal: Meal)
+
+@Composable
+fun LogScreen() {
+    var loggedMeals by remember { mutableStateOf(listOf<LogEntry>()) }
+    var dialogCategory by remember { mutableStateOf<MealCategory?>(null) }
+
+    val totalCalories = loggedMeals.sumOf { it.meal.calories }
+    val totalProtein = loggedMeals.sumOf { it.meal.proteinGrams }
+
+    dialogCategory?.let { category ->
+        MealPickerDialog(
+            category = category,
+            onSelect = { meal ->
+                loggedMeals = loggedMeals + LogEntry(meal = meal)
+                dialogCategory = null
+            },
+            onDismiss = { dialogCategory = null }
+        )
+    }
+
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        item {
+            Text("Today's Log", style = MaterialTheme.typography.headlineSmall)
+        }
+
+        item {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("$totalCalories", style = MaterialTheme.typography.headlineMedium)
+                        Text("calories", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    VerticalDivider(modifier = Modifier.height(48.dp))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            "${totalProtein}g",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text("protein", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+        }
+
+        MealCategory.entries.forEach { category ->
+            item(key = category.name) {
+                MealSection(
+                    category = category,
+                    entries = loggedMeals.filter { it.meal.category == category },
+                    onAdd = { dialogCategory = category },
+                    onRemove = { entry -> loggedMeals = loggedMeals.filter { it.id != entry.id } }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MealSection(
+    category: MealCategory,
+    entries: List<LogEntry>,
+    onAdd: () -> Unit,
+    onRemove: (LogEntry) -> Unit
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(category.displayName, style = MaterialTheme.typography.titleMedium)
+                IconButton(onClick = onAdd) {
+                    Icon(Icons.Default.Add, contentDescription = "Add ${category.displayName}")
+                }
+            }
+            if (entries.isEmpty()) {
+                Text(
+                    "Nothing logged yet",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                entries.forEach { entry ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(entry.meal.name, style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                "${entry.meal.calories} cal · ${entry.meal.proteinGrams}g protein",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        IconButton(onClick = { onRemove(entry) }) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Remove",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MealPickerDialog(
+    category: MealCategory,
+    onSelect: (Meal) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val meals = sampleMeals.filter { it.category == category }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add ${category.displayName}") },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                meals.forEach { meal ->
+                    TextButton(
+                        onClick = { onSelect(meal) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Text(meal.name, style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                "${meal.calories} cal · ${meal.proteinGrams}g protein",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+    )
+}

@@ -11,8 +11,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -29,7 +33,7 @@ import com.example.nutrahelp.data.MealCategory
 import com.example.nutrahelp.data.sampleMeals
 
 @Composable
-fun MealPlanScreen() {
+fun MealPlanScreen(onNavigateToGrocery: () -> Unit = {}) {
     val categories = MealCategory.entries
     var selectedTab by remember { mutableIntStateOf(0) }
 
@@ -49,6 +53,16 @@ fun MealPlanScreen() {
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxSize()
         ) {
+            item {
+                OutlinedButton(
+                    onClick = onNavigateToGrocery,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.ShoppingCart, contentDescription = null)
+                    Spacer(Modifier.padding(horizontal = 4.dp))
+                    Text("View Grocery List")
+                }
+            }
             items(meals) { meal ->
                 MealCard(meal)
             }

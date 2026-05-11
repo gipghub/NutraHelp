@@ -6,9 +6,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.NoteAdd
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -24,8 +26,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.nutrahelp.ui.GroceryListScreen
 import com.example.nutrahelp.ui.HomeScreen
+import com.example.nutrahelp.ui.LogScreen
 import com.example.nutrahelp.ui.MealPlanScreen
+import com.example.nutrahelp.ui.ProgressScreen
 import com.example.nutrahelp.ui.TipsScreen
 import com.example.nutrahelp.ui.theme.NutraHelpTheme
 
@@ -40,9 +45,11 @@ class MainActivity : ComponentActivity() {
             NutraHelpTheme {
                 val navController = rememberNavController()
                 val navItems = listOf(
-                    NavItem("home", "Home", Icons.Default.Home),
-                    NavItem("meals", "Meals", Icons.Default.List),
-                    NavItem("tips", "Tips", Icons.Default.Favorite),
+                    NavItem("home",     "Home",     Icons.Default.Home),
+                    NavItem("log",      "Log",      Icons.Default.NoteAdd),
+                    NavItem("meals",    "Meals",    Icons.Default.Restaurant),
+                    NavItem("progress", "Progress", Icons.Default.TrendingDown),
+                    NavItem("tips",     "Tips",     Icons.Default.Lightbulb),
                 )
                 Scaffold(
                     bottomBar = {
@@ -73,9 +80,16 @@ class MainActivity : ComponentActivity() {
                         startDestination = "home",
                         modifier = Modifier.padding(innerPadding)
                     ) {
-                        composable("home") { HomeScreen() }
-                        composable("meals") { MealPlanScreen() }
-                        composable("tips") { TipsScreen() }
+                        composable("home")     { HomeScreen() }
+                        composable("log")      { LogScreen() }
+                        composable("meals")    {
+                            MealPlanScreen(onNavigateToGrocery = { navController.navigate("grocery") })
+                        }
+                        composable("progress") { ProgressScreen() }
+                        composable("tips")     { TipsScreen() }
+                        composable("grocery")  {
+                            GroceryListScreen(onBack = { navController.popBackStack() })
+                        }
                     }
                 }
             }
