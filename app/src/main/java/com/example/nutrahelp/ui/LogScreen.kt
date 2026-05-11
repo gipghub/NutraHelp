@@ -28,6 +28,9 @@ import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.SentimentNeutral
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Dining
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.LocalBar
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -65,7 +68,10 @@ fun LogScreen(
     onNavigateToFoodSensitivity: () -> Unit = {},
     onNavigateToMindfulEating: () -> Unit = {},
     onNavigateToCalories: () -> Unit = {},
-    onNavigateToProtein: () -> Unit = {}
+    onNavigateToProtein: () -> Unit = {},
+    onNavigateToHunger: () -> Unit = {},
+    onNavigateToMealTiming: () -> Unit = {},
+    onNavigateToAlcohol: () -> Unit = {}
 ) {
     var loggedMeals by remember { mutableStateOf(listOf<LogEntry>()) }
     var dialogCategory by remember { mutableStateOf<MealCategory?>(null) }
@@ -186,6 +192,26 @@ fun LogScreen(
                         Spacer(Modifier.padding(horizontal = 2.dp))
                         Text("Protein")
                     }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(onClick = onNavigateToHunger, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Dining, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Hunger")
+                    }
+                    OutlinedButton(onClick = onNavigateToMealTiming, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Schedule, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Meal Timing")
+                    }
+                }
+                OutlinedButton(onClick = onNavigateToAlcohol, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.LocalBar, contentDescription = null)
+                    Spacer(Modifier.padding(horizontal = 2.dp))
+                    Text("Alcohol Tracker")
                 }
             }
         }
