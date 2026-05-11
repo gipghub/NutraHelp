@@ -36,6 +36,9 @@ import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material.icons.filled.Healing
+import androidx.compose.material.icons.filled.Cake
+import androidx.compose.material.icons.filled.LocalCafe
+import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -81,7 +84,10 @@ fun LogScreen(
     onNavigateToEnergy: () -> Unit = {},
     onNavigateToVitamins: () -> Unit = {},
     onNavigateToSodium: () -> Unit = {},
-    onNavigateToGutHealth: () -> Unit = {}
+    onNavigateToGutHealth: () -> Unit = {},
+    onNavigateToSugar: () -> Unit = {},
+    onNavigateToCaffeine: () -> Unit = {},
+    onNavigateToInflammation: () -> Unit = {}
 ) {
     var loggedMeals by remember { mutableStateOf(listOf<LogEntry>()) }
     var dialogCategory by remember { mutableStateOf<MealCategory?>(null) }
@@ -257,6 +263,26 @@ fun LogScreen(
                         Spacer(Modifier.padding(horizontal = 2.dp))
                         Text("Gut Health")
                     }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(onClick = onNavigateToSugar, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Cake, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Sugar")
+                    }
+                    OutlinedButton(onClick = onNavigateToCaffeine, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.LocalCafe, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Caffeine")
+                    }
+                }
+                OutlinedButton(onClick = onNavigateToInflammation, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Thermostat, contentDescription = null)
+                    Spacer(Modifier.padding(horizontal = 2.dp))
+                    Text("Inflammation Log")
                 }
             }
         }

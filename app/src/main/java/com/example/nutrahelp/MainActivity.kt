@@ -76,6 +76,10 @@ import com.example.nutrahelp.ui.StepCounterLogScreen
 import com.example.nutrahelp.ui.StressTrackerScreen
 import com.example.nutrahelp.ui.SupplementTrackerScreen
 import com.example.nutrahelp.ui.WaterIntakeLogScreen
+import com.example.nutrahelp.ui.SugarTrackerScreen
+import com.example.nutrahelp.ui.CaffeineTrackerScreen
+import com.example.nutrahelp.ui.RecipeNutritionCalculatorScreen
+import com.example.nutrahelp.ui.InflammationLogScreen
 import com.example.nutrahelp.ui.TipsScreen
 import com.example.nutrahelp.ui.theme.NutraHelpTheme
 
@@ -157,14 +161,18 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToEnergy = { navController.navigate("energy") },
                                 onNavigateToVitamins = { navController.navigate("vitamins") },
                                 onNavigateToSodium = { navController.navigate("sodium") },
-                                onNavigateToGutHealth = { navController.navigate("guthealth") }
+                                onNavigateToGutHealth = { navController.navigate("guthealth") },
+                                onNavigateToSugar = { navController.navigate("sugar") },
+                                onNavigateToCaffeine = { navController.navigate("caffeine") },
+                                onNavigateToInflammation = { navController.navigate("inflammation") }
                             )
                         }
                         composable("meals")    {
                             MealPlanScreen(
                                 onNavigateToGrocery = { navController.navigate("grocery") },
                                 onNavigateToRecipes = { navController.navigate("recipes") },
-                                onNavigateToMealPrep = { navController.navigate("mealprep") }
+                                onNavigateToMealPrep = { navController.navigate("mealprep") },
+                                onNavigateToRecipeCalc = { navController.navigate("recipecalc") }
                             )
                         }
                         composable("progress") {
@@ -240,6 +248,10 @@ class MainActivity : ComponentActivity() {
                         composable("sodium")          { SodiumTrackerScreen(onBack = { navController.popBackStack() }) }
                         composable("guthealth")       { GutHealthLogScreen(onBack = { navController.popBackStack() }) }
                         composable("milestones")      { MilestoneLogScreen(onBack = { navController.popBackStack() }) }
+                        composable("sugar")           { SugarTrackerScreen(onBack = { navController.popBackStack() }) }
+                        composable("caffeine")        { CaffeineTrackerScreen(onBack = { navController.popBackStack() }) }
+                        composable("recipecalc")      { RecipeNutritionCalculatorScreen(onBack = { navController.popBackStack() }) }
+                        composable("inflammation")    { InflammationLogScreen(onBack = { navController.popBackStack() }) }
                     }
                 }
             }
