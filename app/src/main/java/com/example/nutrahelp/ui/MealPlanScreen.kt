@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Kitchen
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -42,7 +43,8 @@ fun MealPlanScreen(
     onNavigateToGrocery: () -> Unit = {},
     onNavigateToRecipes: () -> Unit = {},
     onNavigateToMealPrep: () -> Unit = {},
-    onNavigateToRecipeCalc: () -> Unit = {}
+    onNavigateToRecipeCalc: () -> Unit = {},
+    onNavigateToPortionGuide: () -> Unit = {}
 ) {
     val categories = MealCategory.entries
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -101,6 +103,16 @@ fun MealPlanScreen(
                     Icon(Icons.Default.Calculate, contentDescription = null)
                     Spacer(Modifier.padding(horizontal = 4.dp))
                     Text("Recipe Nutrition Calculator")
+                }
+            }
+            item {
+                OutlinedButton(
+                    onClick = onNavigateToPortionGuide,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.Straighten, contentDescription = null)
+                    Spacer(Modifier.padding(horizontal = 4.dp))
+                    Text("Portion Size Guide")
                 }
             }
             items(meals) { meal ->

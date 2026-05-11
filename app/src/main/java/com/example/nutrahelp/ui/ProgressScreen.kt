@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Celebration
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.automirrored.filled.ShowChart
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material3.Icon
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
@@ -65,7 +66,8 @@ fun ProgressScreen(
     onNavigateToNsv: () -> Unit = {},
     onNavigateToBodyFat: () -> Unit = {},
     onNavigateToProjection: () -> Unit = {},
-    onNavigateToMilestones: () -> Unit = {}
+    onNavigateToMilestones: () -> Unit = {},
+    onNavigateToBmrTdee: () -> Unit = {}
 ) {
     var weightInput by remember { mutableStateOf("") }
     var useKg by remember { mutableStateOf(true) }
@@ -160,6 +162,10 @@ fun ProgressScreen(
                 OutlinedButton(onClick = onNavigateToMilestones, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.Celebration, contentDescription = null)
                     Text("Milestone Log", modifier = Modifier.padding(start = 4.dp))
+                }
+                OutlinedButton(onClick = onNavigateToBmrTdee, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.LocalFireDepartment, contentDescription = null)
+                    Text("BMR & TDEE Calculator", modifier = Modifier.padding(start = 4.dp))
                 }
             }
         }
