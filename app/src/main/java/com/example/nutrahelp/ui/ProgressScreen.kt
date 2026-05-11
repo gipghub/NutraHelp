@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material3.Icon
 import androidx.compose.ui.unit.dp
@@ -43,7 +44,8 @@ private data class WeightEntry(val date: String, val weight: Float, val unit: St
 fun ProgressScreen(
     onNavigateToStats: () -> Unit = {},
     onNavigateToExercise: () -> Unit = {},
-    onNavigateToLab: () -> Unit = {}
+    onNavigateToLab: () -> Unit = {},
+    onNavigateToGoals: () -> Unit = {}
 ) {
     var weightInput by remember { mutableStateOf("") }
     var useKg by remember { mutableStateOf(true) }
@@ -76,9 +78,18 @@ fun ProgressScreen(
                         Text("Exercise", modifier = Modifier.padding(start = 4.dp))
                     }
                 }
-                OutlinedButton(onClick = onNavigateToLab, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.Science, contentDescription = null)
-                    Text("Lab Results", modifier = Modifier.padding(start = 4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(onClick = onNavigateToLab, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Science, contentDescription = null)
+                        Text("Lab Results", modifier = Modifier.padding(start = 4.dp))
+                    }
+                    OutlinedButton(onClick = onNavigateToGoals, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Flag, contentDescription = null)
+                        Text("Goals", modifier = Modifier.padding(start = 4.dp))
+                    }
                 }
             }
         }

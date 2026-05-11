@@ -43,7 +43,11 @@ private val daysOfWeek = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "F
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onBack: () -> Unit, onNavigateToMedication: () -> Unit = {}) {
+fun ProfileScreen(
+    onBack: () -> Unit,
+    onNavigateToMedication: () -> Unit = {},
+    onNavigateToAppointments: () -> Unit = {}
+) {
     var name by remember { mutableStateOf("") }
     var unit by remember { mutableStateOf("lbs") }
 
@@ -190,11 +194,22 @@ fun ProfileScreen(onBack: () -> Unit, onNavigateToMedication: () -> Unit = {}) {
             }
 
             item {
-                OutlinedButton(
-                    onClick = onNavigateToMedication,
-                    modifier = Modifier.fillMaxWidth()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("View Medication History")
+                    OutlinedButton(
+                        onClick = onNavigateToMedication,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Medication History")
+                    }
+                    OutlinedButton(
+                        onClick = onNavigateToAppointments,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Appointments")
+                    }
                 }
             }
 

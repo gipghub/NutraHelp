@@ -30,8 +30,12 @@ import com.example.nutrahelp.ui.GroceryListScreen
 import com.example.nutrahelp.ui.HomeScreen
 import com.example.nutrahelp.ui.LogScreen
 import com.example.nutrahelp.ui.MealPlanScreen
+import com.example.nutrahelp.ui.AppointmentTrackerScreen
+import com.example.nutrahelp.ui.BloodSugarLogScreen
 import com.example.nutrahelp.ui.BmiStatsScreen
 import com.example.nutrahelp.ui.DailyJournalScreen
+import com.example.nutrahelp.ui.FastingTimerScreen
+import com.example.nutrahelp.ui.GoalTrackerScreen
 import com.example.nutrahelp.ui.ExerciseLogScreen
 import com.example.nutrahelp.ui.LabResultsScreen
 import com.example.nutrahelp.ui.MedicationTrackerScreen
@@ -93,14 +97,16 @@ class MainActivity : ComponentActivity() {
                         composable("home")     {
                             HomeScreen(
                                 onNavigateToProfile = { navController.navigate("profile") },
-                                onNavigateToSettings = { navController.navigate("settings") }
+                                onNavigateToSettings = { navController.navigate("settings") },
+                                onNavigateToFasting = { navController.navigate("fasting") }
                             )
                         }
                         composable("log")      {
                             LogScreen(
                                 onNavigateToSideEffects = { navController.navigate("sideeffects") },
                                 onNavigateToSupplements = { navController.navigate("supplements") },
-                                onNavigateToJournal = { navController.navigate("journal") }
+                                onNavigateToJournal = { navController.navigate("journal") },
+                                onNavigateToBloodSugar = { navController.navigate("bloodsugar") }
                             )
                         }
                         composable("meals")    {
@@ -113,7 +119,8 @@ class MainActivity : ComponentActivity() {
                             ProgressScreen(
                                 onNavigateToStats = { navController.navigate("bmi") },
                                 onNavigateToExercise = { navController.navigate("exercise") },
-                                onNavigateToLab = { navController.navigate("lab") }
+                                onNavigateToLab = { navController.navigate("lab") },
+                                onNavigateToGoals = { navController.navigate("goals") }
                             )
                         }
                         composable("tips")     { TipsScreen() }
@@ -123,7 +130,8 @@ class MainActivity : ComponentActivity() {
                         composable("profile")  {
                             ProfileScreen(
                                 onBack = { navController.popBackStack() },
-                                onNavigateToMedication = { navController.navigate("medication") }
+                                onNavigateToMedication = { navController.navigate("medication") },
+                                onNavigateToAppointments = { navController.navigate("appointments") }
                             )
                         }
                         composable("recipes")    { RecipesScreen(onBack = { navController.popBackStack() }) }
@@ -133,7 +141,11 @@ class MainActivity : ComponentActivity() {
                         composable("exercise")    { ExerciseLogScreen(onBack = { navController.popBackStack() }) }
                         composable("lab")         { LabResultsScreen(onBack = { navController.popBackStack() }) }
                         composable("supplements") { SupplementTrackerScreen(onBack = { navController.popBackStack() }) }
-                        composable("journal")     { DailyJournalScreen(onBack = { navController.popBackStack() }) }
+                        composable("journal")      { DailyJournalScreen(onBack = { navController.popBackStack() }) }
+                        composable("fasting")      { FastingTimerScreen(onBack = { navController.popBackStack() }) }
+                        composable("bloodsugar")   { BloodSugarLogScreen(onBack = { navController.popBackStack() }) }
+                        composable("goals")        { GoalTrackerScreen(onBack = { navController.popBackStack() }) }
+                        composable("appointments") { AppointmentTrackerScreen(onBack = { navController.popBackStack() }) }
                         composable("settings") {
                             SettingsScreen(onBack = { navController.popBackStack() })
                         }

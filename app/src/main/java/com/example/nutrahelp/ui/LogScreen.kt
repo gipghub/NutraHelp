@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Bloodtype
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.MoodBad
 import androidx.compose.material.icons.filled.Medication
@@ -45,7 +46,8 @@ private data class LogEntry(val id: Long = System.nanoTime(), val meal: Meal)
 fun LogScreen(
     onNavigateToSideEffects: () -> Unit = {},
     onNavigateToSupplements: () -> Unit = {},
-    onNavigateToJournal: () -> Unit = {}
+    onNavigateToJournal: () -> Unit = {},
+    onNavigateToBloodSugar: () -> Unit = {}
 ) {
     var loggedMeals by remember { mutableStateOf(listOf<LogEntry>()) }
     var dialogCategory by remember { mutableStateOf<MealCategory?>(null) }
@@ -87,10 +89,20 @@ fun LogScreen(
                         Text("Supplements")
                     }
                 }
-                OutlinedButton(onClick = onNavigateToJournal, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.Create, contentDescription = null)
-                    Spacer(Modifier.padding(horizontal = 4.dp))
-                    Text("Daily Journal")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(onClick = onNavigateToBloodSugar, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Bloodtype, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Blood Sugar")
+                    }
+                    OutlinedButton(onClick = onNavigateToJournal, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Create, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Journal")
+                    }
                 }
             }
         }
