@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -39,7 +40,10 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun HomeScreen(onNavigateToProfile: () -> Unit = {}) {
+fun HomeScreen(
+    onNavigateToProfile: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {}
+) {
     var waterGlasses by remember { mutableIntStateOf(0) }
     var proteinGrams by remember { mutableIntStateOf(0) }
     val waterGoal = 8
@@ -63,8 +67,13 @@ fun HomeScreen(onNavigateToProfile: () -> Unit = {}) {
                 Text("NutraHelp", style = MaterialTheme.typography.headlineMedium)
                 Text(today, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            IconButton(onClick = onNavigateToProfile) {
-                Icon(Icons.Default.AccountCircle, contentDescription = "Profile", tint = MaterialTheme.colorScheme.primary)
+            Row {
+                IconButton(onClick = onNavigateToProfile) {
+                    Icon(Icons.Default.AccountCircle, contentDescription = "Profile", tint = MaterialTheme.colorScheme.primary)
+                }
+                IconButton(onClick = onNavigateToSettings) {
+                    Icon(Icons.Default.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.primary)
+                }
             }
         }
 

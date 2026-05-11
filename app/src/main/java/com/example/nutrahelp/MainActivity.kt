@@ -32,6 +32,7 @@ import com.example.nutrahelp.ui.LogScreen
 import com.example.nutrahelp.ui.MealPlanScreen
 import com.example.nutrahelp.ui.ProfileScreen
 import com.example.nutrahelp.ui.ProgressScreen
+import com.example.nutrahelp.ui.SettingsScreen
 import com.example.nutrahelp.ui.TipsScreen
 import com.example.nutrahelp.ui.theme.NutraHelpTheme
 
@@ -82,7 +83,10 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         composable("home")     {
-                            HomeScreen(onNavigateToProfile = { navController.navigate("profile") })
+                            HomeScreen(
+                                onNavigateToProfile = { navController.navigate("profile") },
+                                onNavigateToSettings = { navController.navigate("settings") }
+                            )
                         }
                         composable("log")      { LogScreen() }
                         composable("meals")    {
@@ -95,6 +99,9 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("profile")  {
                             ProfileScreen(onBack = { navController.popBackStack() })
+                        }
+                        composable("settings") {
+                            SettingsScreen(onBack = { navController.popBackStack() })
                         }
                     }
                 }
