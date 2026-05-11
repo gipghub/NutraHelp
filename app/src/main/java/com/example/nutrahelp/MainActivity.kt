@@ -1,9 +1,14 @@
 package com.example.nutrahelp
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.os.Bundle
+import android.view.View
+import android.view.animation.AccelerateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.animation.doOnEnd
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.NoteAdd
@@ -100,7 +105,24 @@ private data class NavItem(val route: String, val label: String, val icon: Image
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splash = installSplashScreen()
+        splash.setOnExitAnimationListener { splashView ->
+            val slideUp = ObjectAnimator.ofFloat(
+                splashView.view, View.TRANSLATION_Y, 0f, -splashView.view.height.toFloat()
+            ).apply {
+                duration = 450
+                interpolator = AccelerateInterpolator()
+            }
+            val fadeOut = ObjectAnimator.ofFloat(splashView.view, View.ALPHA, 1f, 0f).apply {
+                duration = 350
+                startDelay = 100
+            }
+            AnimatorSet().apply {
+                playTogether(slideUp, fadeOut)
+                doOnEnd { splashView.remove() }
+                start()
+            }
+        }
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {

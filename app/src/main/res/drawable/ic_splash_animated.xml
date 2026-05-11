@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_splash_icon">
+
+    <!-- Scale the whole leaf in with overshoot -->
+    <target
+        android:name="leaf_group"
+        android:animation="@animator/splash_leaf_appear"/>
+
+    <!-- Draw center vein -->
+    <target
+        android:name="center_vein"
+        android:animation="@animator/splash_center_vein"/>
+
+    <!-- Draw side veins -->
+    <target
+        android:name="left_veins"
+        android:animation="@animator/splash_side_veins"/>
+
+    <target
+        android:name="right_veins"
+        android:animation="@animator/splash_side_veins"/>
+
+    <target
+        android:name="stem"
+        android:animation="@animator/splash_side_veins"/>
+
+</animated-vector>
