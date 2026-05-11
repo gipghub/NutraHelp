@@ -11,8 +11,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.BatterySaver
+import androidx.compose.material.icons.filled.Bedtime
+import androidx.compose.material.icons.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.LocalPharmacy
+import androidx.compose.material.icons.filled.MoodBad
+import androidx.compose.material.icons.filled.NoFood
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Scale
+import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WaterDrop
@@ -29,12 +37,28 @@ import androidx.compose.ui.unit.dp
 private data class GlpTip(val icon: ImageVector, val title: String, val body: String)
 
 private val tips = listOf(
+    // Eating habits
     GlpTip(Icons.Default.Timer, "Eat Slowly", "GLP-1 slows digestion. Take at least 20 minutes per meal to avoid nausea and discomfort."),
+    GlpTip(Icons.Default.Restaurant, "Small Portions", "Your appetite is suppressed — don't force yourself to finish a plate. Small, frequent meals work best."),
+    GlpTip(Icons.Default.Alarm, "Don't Skip Meals", "Even with reduced appetite, eating regularly prevents muscle loss and stabilizes blood sugar."),
+    GlpTip(Icons.Default.NoFood, "Stop When Full", "GLP-1 enhances satiety signals. Stop eating at the first sign of fullness to avoid nausea."),
+    GlpTip(Icons.Default.Warning, "Limit High-Fat Foods", "Fatty foods can worsen nausea. Choose lean proteins, vegetables, and complex carbohydrates."),
+    GlpTip(Icons.Default.MoodBad, "Reduce Alcohol", "Alcohol can cause low blood sugar and worsen GLP-1 side effects. Limit to occasional, small amounts."),
+
+    // Nutrition
     GlpTip(Icons.Default.FitnessCenter, "Prioritize Protein", "Aim for 1g per pound of goal body weight daily to preserve muscle mass during weight loss."),
     GlpTip(Icons.Default.WaterDrop, "Stay Hydrated", "Drink at least 8 glasses of water daily. Dehydration is common on GLP-1 medications."),
-    GlpTip(Icons.Default.Restaurant, "Small Portions", "Your appetite is suppressed — don't force yourself to finish a plate. Small, frequent meals work best."),
-    GlpTip(Icons.Default.Warning, "Limit High-Fat Foods", "Fatty foods can worsen nausea. Choose lean proteins, vegetables, and complex carbohydrates."),
-    GlpTip(Icons.Default.Alarm, "Don't Skip Meals", "Even with reduced appetite, eating regularly prevents muscle loss and stabilizes blood sugar."),
+    GlpTip(Icons.Default.BatterySaver, "Choose Fiber-Rich Foods", "Vegetables, legumes, and whole grains slow digestion further and keep blood sugar steady."),
+    GlpTip(Icons.Default.Scale, "Track Calories Loosely", "Even with a suppressed appetite, aim for at least 1,200 kcal/day to meet micronutrient needs."),
+
+    // Lifestyle
+    GlpTip(Icons.Default.DirectionsWalk, "Stay Active", "Pair GLP-1 medication with 150 minutes of moderate exercise per week to maximize fat loss and muscle retention."),
+    GlpTip(Icons.Default.SelfImprovement, "Manage Stress", "High cortisol can stall weight loss. Try walking, meditation, or deep breathing to keep stress in check."),
+    GlpTip(Icons.Default.Bedtime, "Prioritize Sleep", "Poor sleep raises hunger hormones and undermines the effectiveness of GLP-1 therapy. Aim for 7–9 hours."),
+
+    // Medication
+    GlpTip(Icons.Default.LocalPharmacy, "Take It Consistently", "Inject on the same day each week and rotate injection sites to prevent skin changes and ensure steady absorption."),
+    GlpTip(Icons.Default.Warning, "Watch for Side Effects", "Nausea, constipation, and fatigue are common early on. Most improve after a few weeks — tell your doctor if they persist."),
 )
 
 @Composable
