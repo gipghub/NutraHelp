@@ -30,6 +30,7 @@ import com.example.nutrahelp.ui.GroceryListScreen
 import com.example.nutrahelp.ui.HomeScreen
 import com.example.nutrahelp.ui.LogScreen
 import com.example.nutrahelp.ui.MealPlanScreen
+import com.example.nutrahelp.ui.A1CTrackerScreen
 import com.example.nutrahelp.ui.AppointmentTrackerScreen
 import com.example.nutrahelp.ui.BloodPressureLogScreen
 import com.example.nutrahelp.ui.BloodSugarLogScreen
@@ -39,6 +40,7 @@ import com.example.nutrahelp.ui.BmiStatsScreen
 import com.example.nutrahelp.ui.DailyJournalScreen
 import com.example.nutrahelp.ui.FastingTimerScreen
 import com.example.nutrahelp.ui.FiberTrackerScreen
+import com.example.nutrahelp.ui.FoodSensitivityLogScreen
 import com.example.nutrahelp.ui.Glp1InjectionLogScreen
 import com.example.nutrahelp.ui.GoalTrackerScreen
 import com.example.nutrahelp.ui.HabitTrackerScreen
@@ -46,6 +48,7 @@ import com.example.nutrahelp.ui.HeartRateLogScreen
 import com.example.nutrahelp.ui.ExerciseLogScreen
 import com.example.nutrahelp.ui.LabResultsScreen
 import com.example.nutrahelp.ui.MacroTrackerScreen
+import com.example.nutrahelp.ui.MindfulEatingLogScreen
 import com.example.nutrahelp.ui.MealPrepPlannerScreen
 import com.example.nutrahelp.ui.MedicationTrackerScreen
 import com.example.nutrahelp.ui.ProfileScreen
@@ -54,6 +57,7 @@ import com.example.nutrahelp.ui.RecipesScreen
 import com.example.nutrahelp.ui.SettingsScreen
 import com.example.nutrahelp.ui.SideEffectsScreen
 import com.example.nutrahelp.ui.SleepTrackerScreen
+import com.example.nutrahelp.ui.StepCounterLogScreen
 import com.example.nutrahelp.ui.StressTrackerScreen
 import com.example.nutrahelp.ui.SupplementTrackerScreen
 import com.example.nutrahelp.ui.WaterIntakeLogScreen
@@ -125,7 +129,9 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToMacros = { navController.navigate("macros") },
                                 onNavigateToStress = { navController.navigate("stress") },
                                 onNavigateToGlp1 = { navController.navigate("glp1") },
-                                onNavigateToFiber = { navController.navigate("fiber") }
+                                onNavigateToFiber = { navController.navigate("fiber") },
+                                onNavigateToFoodSensitivity = { navController.navigate("foodsensitivity") },
+                                onNavigateToMindfulEating = { navController.navigate("mindfuleating") }
                             )
                         }
                         composable("meals")    {
@@ -144,7 +150,9 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToMeasurements = { navController.navigate("measurements") },
                                 onNavigateToBloodPressure = { navController.navigate("bloodpressure") },
                                 onNavigateToHeartRate = { navController.navigate("heartrate") },
-                                onNavigateToCholesterol = { navController.navigate("cholesterol") }
+                                onNavigateToCholesterol = { navController.navigate("cholesterol") },
+                                onNavigateToSteps = { navController.navigate("steps") },
+                                onNavigateToA1C = { navController.navigate("a1c") }
                             )
                         }
                         composable("tips")     { TipsScreen() }
@@ -182,7 +190,11 @@ class MainActivity : ComponentActivity() {
                         composable("glp1")         { Glp1InjectionLogScreen(onBack = { navController.popBackStack() }) }
                         composable("fiber")        { FiberTrackerScreen(onBack = { navController.popBackStack() }) }
                         composable("heartrate")    { HeartRateLogScreen(onBack = { navController.popBackStack() }) }
-                        composable("cholesterol")  { CholesterolLogScreen(onBack = { navController.popBackStack() }) }
+                        composable("cholesterol")     { CholesterolLogScreen(onBack = { navController.popBackStack() }) }
+                        composable("steps")           { StepCounterLogScreen(onBack = { navController.popBackStack() }) }
+                        composable("a1c")             { A1CTrackerScreen(onBack = { navController.popBackStack() }) }
+                        composable("foodsensitivity") { FoodSensitivityLogScreen(onBack = { navController.popBackStack() }) }
+                        composable("mindfuleating")   { MindfulEatingLogScreen(onBack = { navController.popBackStack() }) }
                     }
                 }
             }

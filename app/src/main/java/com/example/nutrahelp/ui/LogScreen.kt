@@ -22,6 +22,8 @@ import androidx.compose.material.icons.filled.MoodBad
 import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material.icons.filled.Biotech
 import androidx.compose.material.icons.filled.Grass
+import androidx.compose.material.icons.filled.NoFood
+import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.SentimentNeutral
 import androidx.compose.material3.AlertDialog
@@ -57,7 +59,9 @@ fun LogScreen(
     onNavigateToMacros: () -> Unit = {},
     onNavigateToStress: () -> Unit = {},
     onNavigateToGlp1: () -> Unit = {},
-    onNavigateToFiber: () -> Unit = {}
+    onNavigateToFiber: () -> Unit = {},
+    onNavigateToFoodSensitivity: () -> Unit = {},
+    onNavigateToMindfulEating: () -> Unit = {}
 ) {
     var loggedMeals by remember { mutableStateOf(listOf<LogEntry>()) }
     var dialogCategory by remember { mutableStateOf<MealCategory?>(null) }
@@ -147,6 +151,21 @@ fun LogScreen(
                         Icon(Icons.Default.Grass, contentDescription = null)
                         Spacer(Modifier.padding(horizontal = 2.dp))
                         Text("Fiber")
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(onClick = onNavigateToFoodSensitivity, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.NoFood, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Sensitivity")
+                    }
+                    OutlinedButton(onClick = onNavigateToMindfulEating, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.SelfImprovement, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Mindful")
                     }
                 }
             }

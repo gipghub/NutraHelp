@@ -32,6 +32,8 @@ import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Bloodtype
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Straighten
@@ -53,7 +55,9 @@ fun ProgressScreen(
     onNavigateToMeasurements: () -> Unit = {},
     onNavigateToBloodPressure: () -> Unit = {},
     onNavigateToHeartRate: () -> Unit = {},
-    onNavigateToCholesterol: () -> Unit = {}
+    onNavigateToCholesterol: () -> Unit = {},
+    onNavigateToSteps: () -> Unit = {},
+    onNavigateToA1C: () -> Unit = {}
 ) {
     var weightInput by remember { mutableStateOf("") }
     var useKg by remember { mutableStateOf(true) }
@@ -118,6 +122,19 @@ fun ProgressScreen(
                     OutlinedButton(onClick = onNavigateToCholesterol, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Default.WaterDrop, contentDescription = null)
                         Text("Cholesterol", modifier = Modifier.padding(start = 4.dp))
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(onClick = onNavigateToSteps, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.AutoMirrored.Filled.DirectionsWalk, contentDescription = null)
+                        Text("Steps", modifier = Modifier.padding(start = 4.dp))
+                    }
+                    OutlinedButton(onClick = onNavigateToA1C, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Bloodtype, contentDescription = null)
+                        Text("A1C", modifier = Modifier.padding(start = 4.dp))
                     }
                 }
             }
