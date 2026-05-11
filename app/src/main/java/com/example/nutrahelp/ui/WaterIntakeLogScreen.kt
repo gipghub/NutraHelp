@@ -46,16 +46,37 @@ private data class WaterLogEntry(
     val amountMl: Int
 )
 
+private const val ML_PER_OZ = 29.5735f
+
+private fun mlToOz(ml: Int): Float = ml / ML_PER_OZ
+private fun ozToMl(oz: Float): Int = (oz * ML_PER_OZ).toInt()
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WaterIntakeLogScreen(onBack: () -> Unit) {
+    val useMetric = LocalUseMetric.current
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
 
-    var dailyGoalMl by remember { mutableIntStateOf(2000) }
-    var goalInput by remember { mutableStateOf("2000") }
+    // Default goal: 2000 ml metric / 64 oz standard (~1893 ml)
+    val defaultGoalMl = if (useMetric) 2000 else ozToMl(64f)
+    var dailyGoalMl by remember(useMetric) { mutableIntStateOf(defaultGoalMl) }
+    var goalInput by remember(useMetric) { mutableStateOf(if (useMetric) "2000" else "64") }
     var customAmount by remember { mutableStateOf("") }
     var todayTotal by remember { mutableIntStateOf(0) }
     var entries by remember { mutableStateOf(listOf<WaterLogEntry>()) }
+
+    val unit = if (useMetric) "ml" else "oz"
+    val quickAmounts = if (useMetric) {
+        listOf(250 to "250 ml", 500 to "500 ml", 750 to "750 ml")
+    } else {
+        listOf(237 to "8 oz", 355 to "12 oz", 473 to "16 oz")
+    }
+
+    fun displayAmount(ml: Int): String =
+        if (useMetric) "$ml ml" else "%.0f oz".format(mlToOz(ml))
+
+    fun displayGoal(): String =
+        if (useMetric) "$dailyGoalMl ml" else "%.0f oz".format(mlToOz(dailyGoalMl))
 
     val progress = if (dailyGoalMl > 0) (todayTotal.toFloat() / dailyGoalMl).coerceAtMost(1f) else 0f
     val goalReached = todayTotal >= dailyGoalMl
@@ -100,14 +121,14 @@ fun WaterIntakeLogScreen(onBack: () -> Unit) {
                         ) {
                             Column {
                                 Text(
-                                    "$todayTotal ml",
+                                    displayAmount(todayTotal),
                                     style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = if (goalReached) MaterialTheme.colorScheme.tertiary
                                             else MaterialTheme.colorScheme.primary
                                 )
                                 Text(
-                                    "of ${dailyGoalMl} ml goal",
+                                    "of ${displayGoal()} goal",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -140,11 +161,11 @@ fun WaterIntakeLogScreen(onBack: () -> Unit) {
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            listOf(250, 500, 750).forEach { ml ->
+                            quickAmounts.forEach { (ml, label) ->
                                 OutlinedButton(
                                     onClick = { logAmount(ml) },
                                     modifier = Modifier.weight(1f)
-                                ) { Text("${ml}ml") }
+                                ) { Text(label) }
                             }
                         }
 
@@ -156,14 +177,18 @@ fun WaterIntakeLogScreen(onBack: () -> Unit) {
                             OutlinedTextField(
                                 value = customAmount,
                                 onValueChange = { customAmount = it },
-                                label = { Text("Custom (ml)") },
+                                label = { Text("Custom ($unit)") },
                                 singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                                 modifier = Modifier.weight(1f)
                             )
                             Button(
                                 onClick = {
-                                    val ml = customAmount.toIntOrNull()
+                                    val ml = if (useMetric) {
+                                        customAmount.toIntOrNull()
+                                    } else {
+                                        customAmount.toFloatOrNull()?.let { ozToMl(it) }
+                                    }
                                     if (ml != null && ml > 0) {
                                         logAmount(ml)
                                         customAmount = ""
@@ -182,14 +207,18 @@ fun WaterIntakeLogScreen(onBack: () -> Unit) {
                             OutlinedTextField(
                                 value = goalInput,
                                 onValueChange = { goalInput = it },
-                                label = { Text("Daily goal (ml)") },
+                                label = { Text("Daily goal ($unit)") },
                                 singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                                 modifier = Modifier.weight(1f)
                             )
                             OutlinedButton(onClick = {
-                                val g = goalInput.toIntOrNull()
-                                if (g != null && g > 0) dailyGoalMl = g
+                                val ml = if (useMetric) {
+                                    goalInput.toIntOrNull()
+                                } else {
+                                    goalInput.toFloatOrNull()?.let { ozToMl(it) }
+                                }
+                                if (ml != null && ml > 0) dailyGoalMl = ml
                             }) { Text("Set") }
                         }
                     }
@@ -221,7 +250,7 @@ fun WaterIntakeLogScreen(onBack: () -> Unit) {
                         ) {
                             Text(entry.date, style = MaterialTheme.typography.bodyMedium)
                             Text(
-                                "+${entry.amountMl} ml",
+                                "+${displayAmount(entry.amountMl)}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.primary
