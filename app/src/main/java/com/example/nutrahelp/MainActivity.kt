@@ -16,8 +16,13 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.example.nutrahelp.ui.LocalUseMetric
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -94,6 +99,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             NutraHelpTheme {
+                var useMetric by remember { mutableStateOf(true) }
                 val navController = rememberNavController()
                 val navItems = listOf(
                     NavItem("home",     "Home",     Icons.Default.Home),
@@ -126,6 +132,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 ) { innerPadding ->
+                    CompositionLocalProvider(LocalUseMetric provides useMetric) {
                     NavHost(
                         navController = navController,
                         startDestination = "home",
@@ -220,7 +227,13 @@ class MainActivity : ComponentActivity() {
                         composable("bloodsugar")   { BloodSugarLogScreen(onBack = { navController.popBackStack() }) }
                         composable("goals")        { GoalTrackerScreen(onBack = { navController.popBackStack() }) }
                         composable("appointments") { AppointmentTrackerScreen(onBack = { navController.popBackStack() }) }
-                        composable("settings")     { SettingsScreen(onBack = { navController.popBackStack() }) }
+                        composable("settings")     {
+                            SettingsScreen(
+                                onBack = { navController.popBackStack() },
+                                useMetric = useMetric,
+                                onUseMetricChange = { useMetric = it }
+                            )
+                        }
                         composable("measurements") { BodyMeasurementsScreen(onBack = { navController.popBackStack() }) }
                         composable("habits")       { HabitTrackerScreen(onBack = { navController.popBackStack() }) }
                         composable("sleep")        { SleepTrackerScreen(onBack = { navController.popBackStack() }) }
@@ -259,6 +272,7 @@ class MainActivity : ComponentActivity() {
                         composable("portionguide")   { PortionSizeGuideScreen(onBack = { navController.popBackStack() }) }
                         composable("bmrtdee")        { BmrTdeeCalculatorScreen(onBack = { navController.popBackStack() }) }
                     }
+                    } // end CompositionLocalProvider
                 }
             }
         }

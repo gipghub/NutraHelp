@@ -15,9 +15,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -69,8 +66,8 @@ fun ProgressScreen(
     onNavigateToMilestones: () -> Unit = {},
     onNavigateToBmrTdee: () -> Unit = {}
 ) {
+    val useKg = LocalUseMetric.current
     var weightInput by remember { mutableStateOf("") }
-    var useKg by remember { mutableStateOf(true) }
     var entries by remember { mutableStateOf(listOf<WeightEntry>()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -177,19 +174,6 @@ fun ProgressScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text("Log Today's Weight", style = MaterialTheme.typography.titleMedium)
-
-                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                        SegmentedButton(
-                            selected = useKg,
-                            onClick = { useKg = true },
-                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
-                        ) { Text("kg") }
-                        SegmentedButton(
-                            selected = !useKg,
-                            onClick = { useKg = false },
-                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
-                        ) { Text("lbs") }
-                    }
 
                     OutlinedTextField(
                         value = weightInput,

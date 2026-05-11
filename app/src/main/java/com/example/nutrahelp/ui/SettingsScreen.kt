@@ -36,7 +36,11 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
+fun SettingsScreen(
+    onBack: () -> Unit,
+    useMetric: Boolean = true,
+    onUseMetricChange: (Boolean) -> Unit = {}
+) {
     var injectionReminder by remember { mutableStateOf(true) }
     var mealReminder by remember { mutableStateOf(false) }
     var waterReminder by remember { mutableStateOf(true) }
@@ -109,6 +113,30 @@ fun SettingsScreen(onBack: () -> Unit) {
                     checked = waterReminder,
                     onCheckedChange = { waterReminder = it }
                 )
+            }
+
+            item { SettingsSectionHeader("Measurements") }
+
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Unit System", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        "Applies to weight, height, and body measurements across the app.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    val unitOptions = listOf("Metric (kg, cm)" to true, "Standard (lbs, in)" to false)
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                        unitOptions.forEachIndexed { index, (label, isMetric) ->
+                            SegmentedButton(
+                                selected = useMetric == isMetric,
+                                onClick = { onUseMetricChange(isMetric) },
+                                shape = SegmentedButtonDefaults.itemShape(index = index, count = unitOptions.size),
+                                label = { Text(label) }
+                            )
+                        }
+                    }
+                }
             }
 
             item { SettingsSectionHeader("Appearance") }

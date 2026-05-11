@@ -20,9 +20,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -83,11 +80,11 @@ private fun addDaysToToday(days: Int): String {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeightLossProjectionScreen(onBack: () -> Unit) {
-    var currentWeightInput by remember { mutableStateOf("") }
-    var goalWeightInput by remember { mutableStateOf("") }
-    var weeklyRateInput by remember { mutableStateOf("1.0") }
-    var useKg by remember { mutableStateOf(false) }
-    var result by remember { mutableStateOf<ProjectionResult?>(null) }
+    val useKg = LocalUseMetric.current
+    var currentWeightInput by remember(useKg) { mutableStateOf("") }
+    var goalWeightInput by remember(useKg) { mutableStateOf("") }
+    var weeklyRateInput by remember(useKg) { mutableStateOf(if (useKg) "0.5" else "1.0") }
+    var result by remember(useKg) { mutableStateOf<ProjectionResult?>(null) }
     var formError by remember { mutableStateOf<String?>(null) }
 
     val unit = if (useKg) "kg" else "lbs"
@@ -132,19 +129,6 @@ fun WeightLossProjectionScreen(onBack: () -> Unit) {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text("Your Details", style = MaterialTheme.typography.titleMedium)
-
-                        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                            SegmentedButton(
-                                selected = !useKg,
-                                onClick = { useKg = false; result = null },
-                                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
-                            ) { Text("lbs") }
-                            SegmentedButton(
-                                selected = useKg,
-                                onClick = { useKg = true; result = null },
-                                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
-                            ) { Text("kg") }
-                        }
 
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedTextField(

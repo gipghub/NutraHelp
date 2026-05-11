@@ -97,8 +97,8 @@ private fun calculate(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BmiStatsScreen(onBack: () -> Unit) {
-    var useLbs by remember { mutableStateOf(true) }
-    var useFtIn by remember { mutableStateOf(true) }
+    val useLbs = !LocalUseMetric.current
+    val useFtIn = !LocalUseMetric.current
     var weight by remember { mutableStateOf("") }
     var feet by remember { mutableStateOf("") }
     var inches by remember { mutableStateOf("") }
@@ -137,20 +137,6 @@ fun BmiStatsScreen(onBack: () -> Unit) {
                     ) {
                         Text("Your Measurements", style = MaterialTheme.typography.titleMedium)
 
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text("Weight Unit", style = MaterialTheme.typography.labelMedium)
-                            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                                listOf("lbs", "kg").forEachIndexed { i, label ->
-                                    SegmentedButton(
-                                        selected = (i == 0) == useLbs,
-                                        onClick = { useLbs = i == 0 },
-                                        shape = SegmentedButtonDefaults.itemShape(index = i, count = 2),
-                                        label = { Text(label) }
-                                    )
-                                }
-                            }
-                        }
-
                         OutlinedTextField(
                             value = weight,
                             onValueChange = { weight = it; showError = false },
@@ -160,20 +146,6 @@ fun BmiStatsScreen(onBack: () -> Unit) {
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier.fillMaxWidth()
                         )
-
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text("Height Unit", style = MaterialTheme.typography.labelMedium)
-                            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                                listOf("ft / in", "cm").forEachIndexed { i, label ->
-                                    SegmentedButton(
-                                        selected = (i == 0) == useFtIn,
-                                        onClick = { useFtIn = i == 0 },
-                                        shape = SegmentedButtonDefaults.itemShape(index = i, count = 2),
-                                        label = { Text(label) }
-                                    )
-                                }
-                            }
-                        }
 
                         if (useFtIn) {
                             Row(

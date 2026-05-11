@@ -21,9 +21,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -54,7 +51,7 @@ private data class MeasurementEntry(
 fun BodyMeasurementsScreen(onBack: () -> Unit) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
 
-    var useInches by remember { mutableStateOf(true) }
+    val useInches = !LocalUseMetric.current
     var date by remember { mutableStateOf(todayStr) }
     var inputs by remember { mutableStateOf(measurementFields.associateWith { "" }) }
     var entries by remember { mutableStateOf(listOf<MeasurementEntry>()) }
@@ -90,24 +87,6 @@ fun BodyMeasurementsScreen(onBack: () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text("Log Measurements", style = MaterialTheme.typography.titleMedium)
-
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text("Unit", style = MaterialTheme.typography.labelMedium)
-                            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                                SegmentedButton(
-                                    selected = useInches,
-                                    onClick = { useInches = true },
-                                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                                    label = { Text("Inches") }
-                                )
-                                SegmentedButton(
-                                    selected = !useInches,
-                                    onClick = { useInches = false },
-                                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                                    label = { Text("cm") }
-                                )
-                            }
-                        }
 
                         OutlinedTextField(
                             value = date,

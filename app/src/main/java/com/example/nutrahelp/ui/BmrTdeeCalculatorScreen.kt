@@ -74,8 +74,8 @@ private fun calcMifflinBmr(
 @Composable
 fun BmrTdeeCalculatorScreen(onBack: () -> Unit) {
     var isMale by remember { mutableStateOf(true) }
-    var useKg by remember { mutableStateOf(true) }
-    var useCm by remember { mutableStateOf(true) }
+    val useKg = LocalUseMetric.current
+    val useCm = LocalUseMetric.current
 
     var weightInput by remember { mutableStateOf("") }
     var heightCmInput by remember { mutableStateOf("") }
@@ -143,27 +143,7 @@ fun BmrTdeeCalculatorScreen(onBack: () -> Unit) {
                         )
 
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text("Weight", style = MaterialTheme.typography.labelMedium)
-                                SingleChoiceSegmentedButtonRow {
-                                    SegmentedButton(
-                                        selected = useKg,
-                                        onClick = { useKg = true; weightInput = ""; result = null },
-                                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                                        label = { Text("kg") }
-                                    )
-                                    SegmentedButton(
-                                        selected = !useKg,
-                                        onClick = { useKg = false; weightInput = ""; result = null },
-                                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                                        label = { Text("lbs") }
-                                    )
-                                }
-                            }
+                            Text("Weight", style = MaterialTheme.typography.labelMedium)
                             OutlinedTextField(
                                 value = weightInput,
                                 onValueChange = { weightInput = it; formError = null; result = null },
@@ -175,27 +155,7 @@ fun BmrTdeeCalculatorScreen(onBack: () -> Unit) {
                         }
 
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text("Height", style = MaterialTheme.typography.labelMedium)
-                                SingleChoiceSegmentedButtonRow {
-                                    SegmentedButton(
-                                        selected = useCm,
-                                        onClick = { useCm = true; heightCmInput = ""; result = null },
-                                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                                        label = { Text("cm") }
-                                    )
-                                    SegmentedButton(
-                                        selected = !useCm,
-                                        onClick = { useCm = false; heightFtInput = ""; heightInInput = ""; result = null },
-                                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                                        label = { Text("ft/in") }
-                                    )
-                                }
-                            }
+                            Text("Height", style = MaterialTheme.typography.labelMedium)
                             if (useCm) {
                                 OutlinedTextField(
                                     value = heightCmInput,
