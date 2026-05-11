@@ -87,6 +87,8 @@ import com.example.nutrahelp.ui.RecipeNutritionCalculatorScreen
 import com.example.nutrahelp.ui.InflammationLogScreen
 import com.example.nutrahelp.ui.CravingLogScreen
 import com.example.nutrahelp.ui.HydrationCalculatorScreen
+import com.example.nutrahelp.ui.NauseaLogScreen
+import com.example.nutrahelp.ui.InjectionSiteTrackerScreen
 import com.example.nutrahelp.ui.PortionSizeGuideScreen
 import com.example.nutrahelp.ui.BmrTdeeCalculatorScreen
 import com.example.nutrahelp.ui.TipsScreen
@@ -177,7 +179,9 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToCaffeine = { navController.navigate("caffeine") },
                                 onNavigateToInflammation = { navController.navigate("inflammation") },
                                 onNavigateToCravings = { navController.navigate("cravings") },
-                                onNavigateToHydration = { navController.navigate("hydration") }
+                                onNavigateToHydration = { navController.navigate("hydration") },
+                                onNavigateToNausea = { navController.navigate("nausea") },
+                                onNavigateToInjectionSites = { navController.navigate("injectionsites") }
                             )
                         }
                         composable("meals")    {
@@ -277,6 +281,8 @@ class MainActivity : ComponentActivity() {
                         composable("hydration")      { HydrationCalculatorScreen(onBack = { navController.popBackStack() }) }
                         composable("portionguide")   { PortionSizeGuideScreen(onBack = { navController.popBackStack() }) }
                         composable("bmrtdee")        { BmrTdeeCalculatorScreen(onBack = { navController.popBackStack() }) }
+                        composable("nausea")         { NauseaLogScreen(onBack = { navController.popBackStack() }) }
+                        composable("injectionsites") { InjectionSiteTrackerScreen(onBack = { navController.popBackStack() }) }
                     }
                     } // end CompositionLocalProvider
                 }

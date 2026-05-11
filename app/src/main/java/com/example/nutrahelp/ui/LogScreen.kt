@@ -40,7 +40,9 @@ import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.LocalDrink
+import androidx.compose.material.icons.filled.Sick
 import androidx.compose.material.icons.filled.Thermostat
+import androidx.compose.material.icons.filled.Vaccines
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -91,7 +93,9 @@ fun LogScreen(
     onNavigateToCaffeine: () -> Unit = {},
     onNavigateToInflammation: () -> Unit = {},
     onNavigateToCravings: () -> Unit = {},
-    onNavigateToHydration: () -> Unit = {}
+    onNavigateToHydration: () -> Unit = {},
+    onNavigateToNausea: () -> Unit = {},
+    onNavigateToInjectionSites: () -> Unit = {}
 ) {
     var loggedMeals by remember { mutableStateOf(listOf<LogEntry>()) }
     var dialogCategory by remember { mutableStateOf<MealCategory?>(null) }
@@ -301,6 +305,21 @@ fun LogScreen(
                         Icon(Icons.Default.LocalDrink, contentDescription = null)
                         Spacer(Modifier.padding(horizontal = 2.dp))
                         Text("Hydration")
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(onClick = onNavigateToNausea, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Sick, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Nausea")
+                    }
+                    OutlinedButton(onClick = onNavigateToInjectionSites, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Vaccines, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 2.dp))
+                        Text("Injection Sites")
                     }
                 }
             }
