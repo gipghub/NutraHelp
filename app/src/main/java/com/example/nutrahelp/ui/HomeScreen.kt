@@ -40,11 +40,13 @@ import androidx.compose.ui.unit.dp
 import com.example.nutrahelp.data.MealCategory
 import com.example.nutrahelp.data.sampleMeals
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
 @Composable
 fun HomeScreen(
+    userName: String = "",
     onNavigateToProfile: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
     onNavigateToFasting: () -> Unit = {},
@@ -58,6 +60,15 @@ fun HomeScreen(
     val proteinGoal = 120
     val today = remember { SimpleDateFormat("EEEE, MMMM d", Locale.getDefault()).format(Date()) }
     val featuredMeal = remember { sampleMeals.filter { it.category == MealCategory.DINNER }.random() }
+    val greeting = remember {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        when {
+            hour < 12 -> "Good morning"
+            hour < 17 -> "Good afternoon"
+            else -> "Good evening"
+        }
+    }
+    val greetingText = if (userName.isNotBlank()) "$greeting, $userName!" else "$greeting!"
 
     Column(
         modifier = Modifier
@@ -72,7 +83,7 @@ fun HomeScreen(
             verticalAlignment = Alignment.Top
         ) {
             Column {
-                Text("NutraHelp", style = MaterialTheme.typography.headlineMedium)
+                Text(greetingText, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
                 Text(today, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Row {

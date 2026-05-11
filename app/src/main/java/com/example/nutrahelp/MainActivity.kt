@@ -170,6 +170,7 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                     AppScreen.MAIN -> {
+                val userName = remember { prefs.getString("user_name", "") ?: "" }
                 val navController = rememberNavController()
                 val navItems = listOf(
                     NavItem("home",     "Home",     Icons.Default.Home),
@@ -211,6 +212,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         composable("home")     {
                             HomeScreen(
+                                userName = userName,
                                 onNavigateToProfile = { navController.navigate("profile") },
                                 onNavigateToSettings = { navController.navigate("settings") },
                                 onNavigateToFasting = { navController.navigate("fasting") },
