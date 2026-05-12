@@ -105,6 +105,7 @@ import com.example.nutrahelp.ui.CravingLogScreen
 import com.example.nutrahelp.ui.HydrationCalculatorScreen
 import com.example.nutrahelp.ui.NauseaLogScreen
 import com.example.nutrahelp.ui.InjectionSiteTrackerScreen
+import com.example.nutrahelp.ui.FoodDiaryScreen
 import com.example.nutrahelp.ui.MealLogScreen
 import com.example.nutrahelp.ui.ProgressChartScreen
 import com.example.nutrahelp.ui.WeightTrackingScreen
@@ -258,7 +259,8 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToCravings = { navController.navigate("cravings") },
                                 onNavigateToHydration = { navController.navigate("hydration") },
                                 onNavigateToNausea = { navController.navigate("nausea") },
-                                onNavigateToInjectionSites = { navController.navigate("injectionsites") }
+                                onNavigateToInjectionSites = { navController.navigate("injectionsites") },
+                                onNavigateToFoodDiary = { navController.navigate("fooddiary") }
                             )
                         }
                         composable("meals")    {
@@ -366,6 +368,7 @@ class MainActivity : ComponentActivity() {
                         composable("nausea")         { NauseaLogScreen(onBack = { navController.popBackStack() }) }
                         composable("injectionsites") { InjectionSiteTrackerScreen(onBack = { navController.popBackStack() }) }
                         composable("meallog")          { MealLogScreen(onBack = { navController.popBackStack() }) }
+                        composable("fooddiary")        { FoodDiaryScreen(onBack = { navController.popBackStack() }) }
                         composable("weighttracking")   { WeightTrackingScreen(onBack = { navController.popBackStack() }) }
                         composable("progresscharts")   { ProgressChartScreen(onBack = { navController.popBackStack() }) }
                     }

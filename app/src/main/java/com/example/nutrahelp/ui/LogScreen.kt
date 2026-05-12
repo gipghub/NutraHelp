@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.Fastfood
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.Sick
@@ -98,7 +99,8 @@ fun LogScreen(
     onNavigateToCravings: () -> Unit = {},
     onNavigateToHydration: () -> Unit = {},
     onNavigateToNausea: () -> Unit = {},
-    onNavigateToInjectionSites: () -> Unit = {}
+    onNavigateToInjectionSites: () -> Unit = {},
+    onNavigateToFoodDiary: () -> Unit = {}
 ) {
     var loggedMeals by remember { mutableStateOf(listOf<LogEntry>()) }
     var dialogCategory by remember { mutableStateOf<MealCategory?>(null) }
@@ -132,6 +134,14 @@ fun LogScreen(
                     Icon(Icons.Default.Restaurant, contentDescription = null)
                     Spacer(Modifier.padding(horizontal = 4.dp))
                     Text("Log Meals")
+                }
+                Button(
+                    onClick = onNavigateToFoodDiary,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.MenuBook, contentDescription = null)
+                    Spacer(Modifier.padding(horizontal = 4.dp))
+                    Text("Food Diary")
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
