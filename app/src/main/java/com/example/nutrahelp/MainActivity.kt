@@ -85,6 +85,7 @@ import com.example.nutrahelp.ui.LabResultsScreen
 import com.example.nutrahelp.ui.MacroTrackerScreen
 import com.example.nutrahelp.ui.MindfulEatingLogScreen
 import com.example.nutrahelp.ui.MealPrepPlannerScreen
+import com.example.nutrahelp.ui.MedicationHistoryScreen
 import com.example.nutrahelp.ui.MedicationTrackerScreen
 import com.example.nutrahelp.ui.ProfileScreen
 import com.example.nutrahelp.ui.ProgressScreen
@@ -302,7 +303,8 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("recipes")    { RecipesScreen(onBack = { navController.popBackStack() }) }
-                        composable("medication") { MedicationTrackerScreen(onBack = { navController.popBackStack() }) }
+                        composable("medication") { MedicationHistoryScreen(onBack = { navController.popBackStack() })  }
+                        composable("medicationtracker") { MedicationTrackerScreen(onBack = { navController.popBackStack() }) }
                         composable("sideeffects") { SideEffectsScreen(onBack = { navController.popBackStack() }) }
                         composable("bmi")         { BmiStatsScreen(onBack = { navController.popBackStack() }) }
                         composable("exercise")    { ExerciseLogScreen(onBack = { navController.popBackStack() }) }
