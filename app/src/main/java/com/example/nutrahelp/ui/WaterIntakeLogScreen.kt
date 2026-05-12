@@ -34,11 +34,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.WaterEntryEntity
+import com.example.nutrahelp.viewmodel.WaterViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -54,40 +58,43 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-private data class WaterEntry(
-    val id: Long = System.nanoTime(),
-    val time: String,
-    val amountMl: Int,
-)
-
 private const val ML_PER_OZ = 29.5735f
 private fun mlToOz(ml: Int): Float = ml / ML_PER_OZ
 private fun ozToMl(oz: Float): Int = (oz * ML_PER_OZ).toInt()
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WaterIntakeLogScreen(onBack: () -> Unit) {
+fun WaterIntakeLogScreen(onBack: () -> Unit, vm: WaterViewModel = viewModel()) {
     val useMetric = LocalUseMetric.current
     val timeFmt = remember { SimpleDateFormat("h:mm a", Locale.getDefault()) }
     val dateFmt = remember { SimpleDateFormat("EEE", Locale.getDefault()) }
+    val dateFmtKey = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
 
     val defaultGoalMl = if (useMetric) 2000 else ozToMl(64f)
     var goalMl by remember(useMetric) { mutableIntStateOf(defaultGoalMl) }
     var goalInput by remember(useMetric) { mutableStateOf(if (useMetric) "2000" else "64") }
     var customAmount by remember { mutableStateOf("") }
-    var entries by remember { mutableStateOf(listOf<WaterEntry>()) }
 
-    // 7-day history: index 0 = today, 6 = 6 days ago (ml per day)
-    var weekTotals by remember { mutableStateOf(IntArray(7) { 0 }) }
+    val entries by vm.todayEntries.collectAsState()
+    val weeklyTotalsDb by vm.weeklyTotals.collectAsState()
 
     val unit = if (useMetric) "ml" else "oz"
-    val glassSize = if (useMetric) 250 else ozToMl(8f)   // one "glass"
+    val glassSize = if (useMetric) 250 else ozToMl(8f)
     val totalGlasses = 8
 
     val todayTotal = entries.sumOf { it.amountMl }
     val progress = if (goalMl > 0) (todayTotal.toFloat() / goalMl).coerceAtMost(1f) else 0f
     val glassesConsumed = (todayTotal / glassSize).coerceAtMost(totalGlasses)
     val goalReached = todayTotal >= goalMl
+
+    // Build 7-day array from DB totals
+    val weekTotals = remember(weeklyTotalsDb) {
+        val map = weeklyTotalsDb.associate { it.date to it.total }
+        IntArray(7) { offset ->
+            val cal = java.util.Calendar.getInstance().apply { add(java.util.Calendar.DAY_OF_YEAR, -offset) }
+            map[dateFmtKey.format(cal.time)] ?: 0
+        }
+    }
 
     val quickAmounts = if (useMetric)
         listOf(150 to "150 ml", 250 to "250 ml", 500 to "500 ml", 750 to "750 ml")
@@ -98,8 +105,11 @@ fun WaterIntakeLogScreen(onBack: () -> Unit) {
     fun displayGoal() = if (useMetric) "$goalMl ml" else "%.0f oz".format(mlToOz(goalMl))
 
     fun logAmount(ml: Int) {
-        entries = listOf(WaterEntry(time = timeFmt.format(Date()), amountMl = ml)) + entries
-        weekTotals = weekTotals.copyOf().also { it[0] += ml }
+        vm.insert(WaterEntryEntity(
+            date = dateFmtKey.format(Date()),
+            time = timeFmt.format(Date()),
+            amountMl = ml
+        ))
     }
 
     val trackColor = MaterialTheme.colorScheme.surfaceVariant
@@ -373,10 +383,7 @@ fun WaterIntakeLogScreen(onBack: () -> Unit) {
                     ) {
                         Text("Today's Log (${entries.size})", style = MaterialTheme.typography.titleMedium)
                         OutlinedButton(
-                            onClick = {
-                                weekTotals = weekTotals.copyOf().also { it[0] = 0 }
-                                entries = emptyList()
-                            },
+                            onClick = { vm.resetToday() },
                             contentPadding = PaddingValues(horizontal = 12.dp)
                         ) { Text("Reset") }
                     }
@@ -416,10 +423,7 @@ fun WaterIntakeLogScreen(onBack: () -> Unit) {
                                 }
                             }
                             IconButton(
-                                onClick = {
-                                    weekTotals = weekTotals.copyOf().also { it[0] -= entry.amountMl }
-                                    entries = entries.filter { it.id != entry.id }
-                                },
+                                onClick = { vm.delete(entry) },
                                 modifier = Modifier.size(32.dp)
                             ) {
                                 Icon(Icons.Default.Close, contentDescription = "Delete", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)

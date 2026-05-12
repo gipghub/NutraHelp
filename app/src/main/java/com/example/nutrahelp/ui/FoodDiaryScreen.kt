@@ -45,11 +45,15 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.DiaryEntryEntity
+import com.example.nutrahelp.viewmodel.DiaryViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,24 +67,11 @@ import java.util.Locale
 
 private val diaryMealTypes = listOf("Breakfast", "Lunch", "Dinner", "Snack", "Drink", "Other")
 
-private data class DiaryEntry(
-    val id: Long = System.nanoTime(),
-    val time: String,
-    val mealType: String,
-    val foods: String,
-    val calories: Int?,
-    val protein: Int?,
-    val hungerBefore: Int,   // 1–5
-    val fullnessAfter: Int,  // 1–5
-    val notes: String,
-)
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun FoodDiaryScreen(onBack: () -> Unit) {
-    // dateOffset: 0 = today, -1 = yesterday, etc.
-    var dateOffset by remember { mutableIntStateOf(0) }
-    var allEntries by remember { mutableStateOf(mapOf<Int, List<DiaryEntry>>()) }
+fun FoodDiaryScreen(onBack: () -> Unit, vm: DiaryViewModel = viewModel()) {
+    val dateOffset by vm.dateOffset.collectAsState()
+    val todayEntries by vm.entries.collectAsState()
     var showForm by remember { mutableStateOf(false) }
 
     // Form state
@@ -102,9 +93,8 @@ fun FoodDiaryScreen(onBack: () -> Unit) {
         else -> null
     }
 
-    val todayEntries = allEntries[dateOffset] ?: emptyList()
-    val totalCal = todayEntries.mapNotNull { it.calories }.sum()
-    val totalProtein = todayEntries.mapNotNull { it.protein }.sum()
+    val totalCal = todayEntries.sumOf { it.calories }
+    val totalProtein = todayEntries.sumOf { it.protein }
 
     fun resetForm() {
         fTime = ""; fMealType = diaryMealTypes[0]; fFoods = ""; fCalories = ""
@@ -143,7 +133,7 @@ fun FoodDiaryScreen(onBack: () -> Unit) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = { dateOffset--; showForm = false }) {
+                        IconButton(onClick = { vm.setOffset(dateOffset - 1); showForm = false }) {
                             Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Previous day")
                         }
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -154,12 +144,12 @@ fun FoodDiaryScreen(onBack: () -> Unit) {
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             if (dateOffset < 0) {
-                                TextButton(onClick = { dateOffset = 0; showForm = false }, contentPadding = PaddingValues(horizontal = 4.dp)) {
+                                TextButton(onClick = { vm.setOffset(0); showForm = false }, contentPadding = PaddingValues(horizontal = 4.dp)) {
                                     Text("Today", style = MaterialTheme.typography.labelMedium)
                                 }
                             }
                             IconButton(
-                                onClick = { if (dateOffset < 0) { dateOffset++; showForm = false } },
+                                onClick = { if (dateOffset < 0) { vm.setOffset(dateOffset + 1); showForm = false } },
                                 enabled = dateOffset < 0
                             ) {
                                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Next day")
@@ -320,18 +310,18 @@ fun FoodDiaryScreen(onBack: () -> Unit) {
                                     if (fFoods.isBlank()) {
                                         fError = true
                                     } else {
-                                        val entry = DiaryEntry(
+                                        vm.insert(DiaryEntryEntity(
+                                            dateOffset = dateOffset,
+                                            date = vm.dateKeyForOffset(dateOffset),
                                             time = fTime.trim(),
                                             mealType = fMealType,
                                             foods = fFoods.trim(),
-                                            calories = fCalories.toIntOrNull(),
-                                            protein = fProtein.toIntOrNull(),
+                                            calories = fCalories.toIntOrNull() ?: 0,
+                                            protein = fProtein.toIntOrNull() ?: 0,
                                             hungerBefore = fHunger,
                                             fullnessAfter = fFullness,
                                             notes = fNotes.trim()
-                                        )
-                                        val updated = (allEntries[dateOffset] ?: emptyList()) + entry
-                                        allEntries = allEntries + (dateOffset to updated)
+                                        ))
                                         resetForm()
                                     }
                                 },
@@ -358,10 +348,7 @@ fun FoodDiaryScreen(onBack: () -> Unit) {
                 items(todayEntries, key = { it.id }) { entry ->
                     DiaryEntryCard(
                         entry = entry,
-                        onDelete = {
-                            val updated = (allEntries[dateOffset] ?: emptyList()).filter { it.id != entry.id }
-                            allEntries = allEntries + (dateOffset to updated)
-                        }
+                        onDelete = { vm.delete(entry) }
                     )
                 }
             }
@@ -424,7 +411,7 @@ private fun RatingRow(label: String, value: Int, onValueChange: (Int) -> Unit, l
 }
 
 @Composable
-private fun DiaryEntryCard(entry: DiaryEntry, onDelete: () -> Unit) {
+private fun DiaryEntryCard(entry: DiaryEntryEntity, onDelete: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(
@@ -459,9 +446,9 @@ private fun DiaryEntryCard(entry: DiaryEntry, onDelete: () -> Unit) {
             }
 
             // Nutrition info
-            if (entry.calories != null || entry.protein != null) {
+            if (entry.calories > 0 || entry.protein > 0) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (entry.calories != null) {
+                    if (entry.calories > 0) {
                         Text(
                             "${entry.calories} kcal",
                             style = MaterialTheme.typography.bodySmall,
@@ -469,7 +456,7 @@ private fun DiaryEntryCard(entry: DiaryEntry, onDelete: () -> Unit) {
                             fontWeight = FontWeight.Medium
                         )
                     }
-                    if (entry.protein != null) {
+                    if (entry.protein > 0) {
                         Text(
                             "${entry.protein}g protein",
                             style = MaterialTheme.typography.bodySmall,

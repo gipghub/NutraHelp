@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.TrendingUp
@@ -41,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +52,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.InjectionRecordEntity
+import com.example.nutrahelp.data.TitrationEntryEntity
+import com.example.nutrahelp.viewmodel.MedicationHistoryViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -76,30 +82,15 @@ private val titrationReasons = listOf(
     "Other",
 )
 
-private data class TitrationEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val medication: String,
-    val dose: String,
-    val reason: String,
-    val notes: String,
-)
-
-private data class InjectionRecord(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val medication: String,
-    val dose: String,
-    val notes: String,
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MedicationHistoryScreen(onBack: () -> Unit) {
+fun MedicationHistoryScreen(onBack: () -> Unit, vm: MedicationHistoryViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
 
-    // Titration state
-    var titrations by remember { mutableStateOf(listOf<TitrationEntry>()) }
+    val titrations by vm.titrations.collectAsState()
+    val injections by vm.injections.collectAsState()
+
+    // Titration form state
     var showTitrationForm by remember { mutableStateOf(false) }
     var tDate by remember { mutableStateOf(todayStr) }
     var tMed by remember { mutableStateOf(historyMedOptions[0]) }
@@ -110,8 +101,7 @@ fun MedicationHistoryScreen(onBack: () -> Unit) {
     var tNotes by remember { mutableStateOf("") }
     var tError by remember { mutableStateOf(false) }
 
-    // Injection state
-    var injections by remember { mutableStateOf(listOf<InjectionRecord>()) }
+    // Injection form state
     var showInjectionForm by remember { mutableStateOf(false) }
     var iDate by remember { mutableStateOf(todayStr) }
     var iMed by remember { mutableStateOf(historyMedOptions[0]) }
@@ -296,20 +286,17 @@ fun MedicationHistoryScreen(onBack: () -> Unit) {
                                     if (tDate.isBlank() || tDose.isBlank()) {
                                         tError = true
                                     } else {
-                                        titrations = listOf(
-                                            TitrationEntry(
+                                        vm.insertTitration(
+                                            TitrationEntryEntity(
                                                 date = tDate,
                                                 medication = tMed,
                                                 dose = tDose,
                                                 reason = tReason,
                                                 notes = tNotes.trim()
                                             )
-                                        ) + titrations
-                                        tDate = todayStr
-                                        tDose = ""
-                                        tNotes = ""
-                                        tError = false
-                                        showTitrationForm = false
+                                        )
+                                        tDate = todayStr; tDose = ""; tNotes = ""
+                                        tError = false; showTitrationForm = false
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth()
@@ -335,7 +322,8 @@ fun MedicationHistoryScreen(onBack: () -> Unit) {
                     TitrationTimelineItem(
                         entry = entry,
                         isFirst = index == 0,
-                        isLast = index == titrations.lastIndex
+                        isLast = index == titrations.lastIndex,
+                        onDelete = { vm.deleteTitration(entry) }
                     )
                 }
             }
@@ -423,19 +411,16 @@ fun MedicationHistoryScreen(onBack: () -> Unit) {
                                     if (iDate.isBlank() || iDose.isBlank()) {
                                         iError = true
                                     } else {
-                                        injections = listOf(
-                                            InjectionRecord(
+                                        vm.insertInjection(
+                                            InjectionRecordEntity(
                                                 date = iDate,
                                                 medication = iMed,
                                                 dose = iDose,
                                                 notes = iNotes.trim()
                                             )
-                                        ) + injections
-                                        iDate = todayStr
-                                        iDose = ""
-                                        iNotes = ""
-                                        iError = false
-                                        showInjectionForm = false
+                                        )
+                                        iDate = todayStr; iDose = ""; iNotes = ""
+                                        iError = false; showInjectionForm = false
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth()
@@ -458,7 +443,11 @@ fun MedicationHistoryScreen(onBack: () -> Unit) {
                 }
             } else {
                 itemsIndexed(injections, key = { _, r -> r.id }) { index, record ->
-                    InjectionLogItem(record = record, index = injections.size - index)
+                    InjectionLogItem(
+                        record = record,
+                        index = injections.size - index,
+                        onDelete = { vm.deleteInjection(record) }
+                    )
                 }
             }
         }
@@ -475,7 +464,12 @@ private fun MedStatItem(icon: androidx.compose.ui.graphics.vector.ImageVector, l
 }
 
 @Composable
-private fun TitrationTimelineItem(entry: TitrationEntry, isFirst: Boolean, isLast: Boolean) {
+private fun TitrationTimelineItem(
+    entry: TitrationEntryEntity,
+    isFirst: Boolean,
+    isLast: Boolean,
+    onDelete: () -> Unit,
+) {
     Row(modifier = Modifier.fillMaxWidth()) {
         // Timeline column
         Column(
@@ -539,11 +533,16 @@ private fun TitrationTimelineItem(entry: TitrationEntry, isFirst: Boolean, isLas
                         color = if (isFirst) MaterialTheme.colorScheme.onPrimaryContainer
                         else MaterialTheme.colorScheme.onSurface
                     )
-                    Text(
-                        entry.date,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            entry.date,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
+                            Icon(Icons.Default.Close, contentDescription = "Delete", modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
                 }
                 Text(
                     entry.medication,
@@ -568,7 +567,7 @@ private fun TitrationTimelineItem(entry: TitrationEntry, isFirst: Boolean, isLas
 }
 
 @Composable
-private fun InjectionLogItem(record: InjectionRecord, index: Int) {
+private fun InjectionLogItem(record: InjectionRecordEntity, index: Int, onDelete: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -607,11 +606,16 @@ private fun InjectionLogItem(record: InjectionRecord, index: Int) {
                     }
                 }
             }
-            Text(
-                record.date,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    record.date,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
+                    Icon(Icons.Default.Close, contentDescription = "Delete", modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
         }
     }
 }

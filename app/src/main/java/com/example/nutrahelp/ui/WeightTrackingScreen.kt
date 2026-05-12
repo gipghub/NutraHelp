@@ -38,10 +38,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.WeightEntryEntity
+import com.example.nutrahelp.viewmodel.WeightViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -55,20 +59,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private data class WeightRecord(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val weight: Float,
-    val unit: String,
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WeightTrackingScreen(onBack: () -> Unit = {}) {
+fun WeightTrackingScreen(onBack: () -> Unit = {}, vm: WeightViewModel = viewModel()) {
     val useMetric = LocalUseMetric.current
     val unit = if (useMetric) "kg" else "lbs"
 
-    var records by remember { mutableStateOf(listOf<WeightRecord>()) }
+    val records by vm.entries.collectAsState()
     var weightInput by remember { mutableStateOf("") }
     var goalInput by remember { mutableStateOf("") }
     var goalWeight by remember { mutableStateOf<Float?>(null) }
@@ -301,7 +298,7 @@ fun WeightTrackingScreen(onBack: () -> Unit = {}) {
                                         weightError = "Enter a valid weight"
                                     } else {
                                         val today = SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date())
-                                        records = listOf(WeightRecord(date = today, weight = w, unit = unit)) + records
+                                        vm.insert(WeightEntryEntity(date = today, weight = w, unit = unit))
                                         weightInput = ""
                                         weightError = null
                                     }
@@ -353,7 +350,7 @@ fun WeightTrackingScreen(onBack: () -> Unit = {}) {
                                             color = MaterialTheme.colorScheme.primary
                                         )
                                         IconButton(
-                                            onClick = { records = records.filter { it.id != record.id } },
+                                            onClick = { vm.delete(record) },
                                             modifier = Modifier.size(36.dp)
                                         ) {
                                             Icon(
@@ -399,7 +396,7 @@ private fun WeightStat(label: String, value: String, unit: String, color: Color)
 }
 
 @Composable
-private fun WeightChart(records: List<WeightRecord>, unit: String) {
+private fun WeightChart(records: List<WeightEntryEntity>, unit: String) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val surfaceVariant = MaterialTheme.colorScheme.surfaceVariant
     val onSurface = MaterialTheme.colorScheme.onSurface
