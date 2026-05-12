@@ -4,12 +4,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.filled.MonitorWeight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -50,6 +52,7 @@ private data class WeightEntry(val date: String, val weight: Float, val unit: St
 
 @Composable
 fun ProgressScreen(
+    onNavigateToWeightTracking: () -> Unit = {},
     onNavigateToStats: () -> Unit = {},
     onNavigateToExercise: () -> Unit = {},
     onNavigateToLab: () -> Unit = {},
@@ -84,6 +87,14 @@ fun ProgressScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Weight Progress", style = MaterialTheme.typography.headlineSmall)
+                Button(
+                    onClick = onNavigateToWeightTracking,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.MonitorWeight, contentDescription = null)
+                    Spacer(Modifier.padding(horizontal = 4.dp))
+                    Text("Track Weight")
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
