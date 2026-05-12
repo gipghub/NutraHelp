@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -47,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -57,6 +57,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.AppointmentEntity
+import com.example.nutrahelp.viewmodel.AppointmentViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -73,23 +76,12 @@ private val apptTypes = listOf(
     "Other",
 )
 
-private data class Appointment(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val time: String,
-    val provider: String,
-    val type: String,
-    val location: String,
-    val notes: String,
-    val completed: Boolean = false,
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppointmentTrackerScreen(onBack: () -> Unit) {
+fun AppointmentTrackerScreen(onBack: () -> Unit, vm: AppointmentViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
 
-    var appointments by remember { mutableStateOf(listOf<Appointment>()) }
+    val appointments by vm.appointments.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
     var showForm by remember { mutableStateOf(false) }
 
@@ -153,7 +145,9 @@ fun AppointmentTrackerScreen(onBack: () -> Unit) {
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            // Date badge
+                            val parts = nextAppt.date.split("/")
+                            val month = if (parts.size >= 2) monthAbbr(parts[0].toIntOrNull() ?: 0) else ""
+                            val day = parts.getOrNull(1) ?: ""
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier
@@ -161,9 +155,6 @@ fun AppointmentTrackerScreen(onBack: () -> Unit) {
                                     .background(MaterialTheme.colorScheme.primary)
                                     .padding(horizontal = 12.dp, vertical = 8.dp)
                             ) {
-                                val parts = nextAppt.date.split("/")
-                                val month = if (parts.size >= 2) monthAbbr(parts[0].toIntOrNull() ?: 0) else ""
-                                val day = parts.getOrNull(1) ?: ""
                                 Text(month, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimary)
                                 Text(day, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
                             }
@@ -323,16 +314,17 @@ fun AppointmentTrackerScreen(onBack: () -> Unit) {
                                     if (fDate.isBlank() || fProvider.isBlank()) {
                                         fError = true
                                     } else {
-                                        appointments = listOf(
-                                            Appointment(
+                                        vm.insert(
+                                            AppointmentEntity(
                                                 date = fDate,
                                                 time = fTime.trim(),
                                                 provider = fProvider.trim(),
                                                 type = fType,
                                                 location = fLocation.trim(),
-                                                notes = fNotes.trim()
+                                                notes = fNotes.trim(),
+                                                completed = false,
                                             )
-                                        ) + appointments
+                                        )
                                         resetForm()
                                     }
                                 },
@@ -348,7 +340,11 @@ fun AppointmentTrackerScreen(onBack: () -> Unit) {
             // ── Tabs ──────────────────────────────────────────────────────────
             item {
                 TabRow(selectedTabIndex = selectedTab) {
-                    listOf("Upcoming (${upcoming.size})", "Completed (${completed.size})", "All (${appointments.size})").forEachIndexed { i, label ->
+                    listOf(
+                        "Upcoming (${upcoming.size})",
+                        "Completed (${completed.size})",
+                        "All (${appointments.size})"
+                    ).forEachIndexed { i, label ->
                         Tab(
                             selected = selectedTab == i,
                             onClick = { selectedTab = i },
@@ -376,14 +372,8 @@ fun AppointmentTrackerScreen(onBack: () -> Unit) {
                 items(displayed, key = { it.id }) { appt ->
                     ApptCard(
                         appt = appt,
-                        onToggleComplete = {
-                            appointments = appointments.map { a ->
-                                if (a.id == appt.id) a.copy(completed = !a.completed) else a
-                            }
-                        },
-                        onDelete = {
-                            appointments = appointments.filter { a -> a.id != appt.id }
-                        }
+                        onToggleComplete = { vm.toggleComplete(appt) },
+                        onDelete = { vm.delete(appt) }
                     )
                 }
             }
@@ -407,7 +397,7 @@ private fun ApptStatCard(label: String, value: String, icon: androidx.compose.ui
 }
 
 @Composable
-private fun ApptCard(appt: Appointment, onToggleComplete: () -> Unit, onDelete: () -> Unit) {
+private fun ApptCard(appt: AppointmentEntity, onToggleComplete: () -> Unit, onDelete: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = if (appt.completed)
@@ -422,7 +412,6 @@ private fun ApptCard(appt: Appointment, onToggleComplete: () -> Unit, onDelete: 
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.Top
         ) {
-            // Date badge
             val parts = appt.date.split("/")
             val month = monthAbbr(parts.getOrNull(0)?.toIntOrNull() ?: 0)
             val day = parts.getOrNull(1) ?: "?"
@@ -452,18 +441,9 @@ private fun ApptCard(appt: Appointment, onToggleComplete: () -> Unit, onDelete: 
                 )
             }
 
-            // Content
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    appt.provider,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    appt.type,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Text(appt.provider, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text(appt.type, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     if (appt.time.isNotBlank()) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -482,27 +462,24 @@ private fun ApptCard(appt: Appointment, onToggleComplete: () -> Unit, onDelete: 
                     Text(appt.notes, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Spacer(Modifier.height(4.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(
-                        onClick = onToggleComplete,
-                        modifier = Modifier.height(32.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp)
-                    ) {
-                        Icon(
-                            if (appt.completed) Icons.Default.Undo else Icons.Default.Check,
-                            null,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            if (appt.completed) "Undo" else "Mark Done",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
+                OutlinedButton(
+                    onClick = onToggleComplete,
+                    modifier = Modifier.height(32.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp)
+                ) {
+                    Icon(
+                        if (appt.completed) Icons.Default.Undo else Icons.Default.Check,
+                        null,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        if (appt.completed) "Undo" else "Mark Done",
+                        style = MaterialTheme.typography.labelSmall
+                    )
                 }
             }
 
-            // Delete
             IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
                 Icon(
                     Icons.Default.Close,

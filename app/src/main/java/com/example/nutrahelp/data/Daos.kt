@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -76,4 +77,19 @@ interface InjectionDao {
 
     @Delete
     suspend fun delete(entry: InjectionRecordEntity)
+}
+
+@Dao
+interface AppointmentDao {
+    @Query("SELECT * FROM appointments ORDER BY id DESC")
+    fun getAll(): Flow<List<AppointmentEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(entry: AppointmentEntity)
+
+    @Update
+    suspend fun update(entry: AppointmentEntity)
+
+    @Delete
+    suspend fun delete(entry: AppointmentEntity)
 }

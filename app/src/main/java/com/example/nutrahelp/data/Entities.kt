@@ -52,3 +52,15 @@ data class InjectionRecordEntity(
     val dose: String,
     val notes: String,
 )
+
+@Entity(tableName = "appointments")
+data class AppointmentEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val time: String,
+    val provider: String,
+    val type: String,
+    val location: String,
+    val notes: String,
+    val completed: Boolean,
+)

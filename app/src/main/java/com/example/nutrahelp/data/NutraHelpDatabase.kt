@@ -12,8 +12,9 @@ import androidx.room.RoomDatabase
         DiaryEntryEntity::class,
         TitrationEntryEntity::class,
         InjectionRecordEntity::class,
+        AppointmentEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 abstract class NutraHelpDatabase : RoomDatabase() {
@@ -22,6 +23,7 @@ abstract class NutraHelpDatabase : RoomDatabase() {
     abstract fun diaryDao(): DiaryDao
     abstract fun titrationDao(): TitrationDao
     abstract fun injectionDao(): InjectionDao
+    abstract fun appointmentDao(): AppointmentDao
 
     companion object {
         @Volatile private var INSTANCE: NutraHelpDatabase? = null
@@ -32,7 +34,7 @@ abstract class NutraHelpDatabase : RoomDatabase() {
                     context.applicationContext,
                     NutraHelpDatabase::class.java,
                     "nutrahelp.db"
-                ).build().also { INSTANCE = it }
+                ).fallbackToDestructiveMigration(true).build().also { INSTANCE = it }
             }
     }
 }
