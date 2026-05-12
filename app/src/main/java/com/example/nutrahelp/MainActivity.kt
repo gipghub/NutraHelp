@@ -103,6 +103,7 @@ import com.example.nutrahelp.ui.CravingLogScreen
 import com.example.nutrahelp.ui.HydrationCalculatorScreen
 import com.example.nutrahelp.ui.NauseaLogScreen
 import com.example.nutrahelp.ui.InjectionSiteTrackerScreen
+import com.example.nutrahelp.ui.MealLogScreen
 import com.example.nutrahelp.ui.PortionSizeGuideScreen
 import com.example.nutrahelp.ui.BmrTdeeCalculatorScreen
 import com.example.nutrahelp.ui.TipsScreen
@@ -223,6 +224,7 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("log")      {
                             LogScreen(
+                                onNavigateToMealLog = { navController.navigate("meallog") },
                                 onNavigateToSideEffects = { navController.navigate("sideeffects") },
                                 onNavigateToSupplements = { navController.navigate("supplements") },
                                 onNavigateToJournal = { navController.navigate("journal") },
@@ -354,6 +356,7 @@ class MainActivity : ComponentActivity() {
                         composable("bmrtdee")        { BmrTdeeCalculatorScreen(onBack = { navController.popBackStack() }) }
                         composable("nausea")         { NauseaLogScreen(onBack = { navController.popBackStack() }) }
                         composable("injectionsites") { InjectionSiteTrackerScreen(onBack = { navController.popBackStack() }) }
+                        composable("meallog")        { MealLogScreen(onBack = { navController.popBackStack() }) }
                     }
                     } // end FoodSilhouetteBackground
                     } // end CompositionLocalProvider

@@ -43,7 +43,9 @@ import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.Sick
 import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material.icons.filled.Vaccines
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -68,6 +70,7 @@ private data class LogEntry(val id: Long = System.nanoTime(), val meal: Meal)
 
 @Composable
 fun LogScreen(
+    onNavigateToMealLog: () -> Unit = {},
     onNavigateToSideEffects: () -> Unit = {},
     onNavigateToSupplements: () -> Unit = {},
     onNavigateToJournal: () -> Unit = {},
@@ -122,6 +125,14 @@ fun LogScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Today's Log", style = MaterialTheme.typography.headlineSmall)
+                Button(
+                    onClick = onNavigateToMealLog,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.Restaurant, contentDescription = null)
+                    Spacer(Modifier.padding(horizontal = 4.dp))
+                    Text("Log Meals")
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
