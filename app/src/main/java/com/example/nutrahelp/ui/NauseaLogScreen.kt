@@ -31,6 +31,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +42,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.NauseaEntryEntity
+import com.example.nutrahelp.viewmodel.NauseaViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -56,22 +60,16 @@ private val nauseaRemedies = listOf(
 )
 private val nauseaDurations = listOf("<30 min", "30–120 min", ">2 hours")
 
-private data class NauseaEntry(
-    val id: Long = System.nanoTime(),
-    val dateTime: String,
-    val timeOfDay: String,
-    val severity: Int,
-    val triggers: Set<String>,
-    val remedies: Set<String>,
-    val duration: String,
-    val notes: String
-)
+private fun String.toStringSet(): Set<String> =
+    split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun NauseaLogScreen(onBack: () -> Unit) {
+fun NauseaLogScreen(onBack: () -> Unit, vm: NauseaViewModel = viewModel()) {
     val locale = LocalConfiguration.current.locales[0]
     val dateFormat = remember(locale) { SimpleDateFormat("MMM d, h:mm a", locale) }
+
+    val entries by vm.entries.collectAsState()
 
     var selectedSeverity by remember { mutableIntStateOf(0) }
     var selectedTimeOfDay by remember { mutableStateOf(nauseaTimeOptions[0]) }
@@ -79,16 +77,15 @@ fun NauseaLogScreen(onBack: () -> Unit) {
     var selectedRemedies by remember { mutableStateOf(setOf<String>()) }
     var selectedDuration by remember { mutableStateOf(nauseaDurations[0]) }
     var notes by remember { mutableStateOf("") }
-    var entries by remember { mutableStateOf(listOf<NauseaEntry>()) }
 
     val topTrigger = entries
-        .flatMap { it.triggers }
+        .flatMap { it.triggers.toStringSet() }
         .groupingBy { it }
         .eachCount()
         .maxByOrNull { it.value }?.key
 
     val topRemedy = entries
-        .flatMap { it.remedies }
+        .flatMap { it.remedies.toStringSet() }
         .filter { it != "Nothing helped" }
         .groupingBy { it }
         .eachCount()
@@ -235,17 +232,17 @@ fun NauseaLogScreen(onBack: () -> Unit) {
 
                         Button(
                             onClick = {
-                                entries = listOf(
-                                    NauseaEntry(
+                                vm.insert(
+                                    NauseaEntryEntity(
                                         dateTime = dateFormat.format(Date()),
                                         timeOfDay = selectedTimeOfDay,
                                         severity = selectedSeverity,
-                                        triggers = selectedTriggers,
-                                        remedies = selectedRemedies,
+                                        triggers = selectedTriggers.joinToString(","),
+                                        remedies = selectedRemedies.joinToString(","),
                                         duration = selectedDuration,
                                         notes = notes.trim()
                                     )
-                                ) + entries
+                                )
                                 selectedSeverity = 0
                                 selectedTimeOfDay = nauseaTimeOptions[0]
                                 selectedTriggers = setOf()
@@ -267,11 +264,13 @@ fun NauseaLogScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("History (${entries.size})", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Clear") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->
+                    val entryTriggers = entry.triggers.toStringSet()
+                    val entryRemedies = entry.remedies.toStringSet()
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Row(
                             modifier = Modifier
@@ -302,16 +301,16 @@ fun NauseaLogScreen(onBack: () -> Unit) {
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                if (entry.triggers.isNotEmpty()) {
+                                if (entryTriggers.isNotEmpty()) {
                                     Text(
-                                        "Triggers: ${entry.triggers.joinToString(", ")}",
+                                        "Triggers: ${entryTriggers.joinToString(", ")}",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
-                                if (entry.remedies.isNotEmpty()) {
+                                if (entryRemedies.isNotEmpty()) {
                                     Text(
-                                        "Helped: ${entry.remedies.joinToString(", ")}",
+                                        "Helped: ${entryRemedies.joinToString(", ")}",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -320,7 +319,7 @@ fun NauseaLogScreen(onBack: () -> Unit) {
                                     Text(entry.notes, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
-                            IconButton(onClick = { entries = entries.filter { it.id != entry.id } }) {
+                            IconButton(onClick = { vm.delete(entry) }) {
                                 Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
                             }
                         }

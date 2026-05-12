@@ -13,8 +13,11 @@ import androidx.room.RoomDatabase
         TitrationEntryEntity::class,
         InjectionRecordEntity::class,
         AppointmentEntity::class,
+        NauseaEntryEntity::class,
+        InjectionSiteEntryEntity::class,
+        CravingEntryEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class NutraHelpDatabase : RoomDatabase() {
@@ -24,6 +27,9 @@ abstract class NutraHelpDatabase : RoomDatabase() {
     abstract fun titrationDao(): TitrationDao
     abstract fun injectionDao(): InjectionDao
     abstract fun appointmentDao(): AppointmentDao
+    abstract fun nauseaDao(): NauseaDao
+    abstract fun injectionSiteDao(): InjectionSiteDao
+    abstract fun cravingDao(): CravingDao
 
     companion object {
         @Volatile private var INSTANCE: NutraHelpDatabase? = null

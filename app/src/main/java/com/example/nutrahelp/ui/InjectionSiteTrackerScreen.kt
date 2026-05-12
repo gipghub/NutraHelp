@@ -26,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +36,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.InjectionSiteEntryEntity
+import com.example.nutrahelp.viewmodel.InjectionSiteViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.concurrent.TimeUnit
@@ -50,31 +54,23 @@ private val injectionSites = listOf(
     "Upper Arm — Right"
 )
 
-private data class InjectionSiteEntry(
-    val id: Long = System.nanoTime(),
-    val dateTime: String,
-    val timestampMs: Long,
-    val site: String,
-    val dose: String,
-    val notes: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InjectionSiteTrackerScreen(onBack: () -> Unit) {
+fun InjectionSiteTrackerScreen(onBack: () -> Unit, vm: InjectionSiteViewModel = viewModel()) {
     val locale = LocalConfiguration.current.locales[0]
     val dateFormat = remember(locale) { SimpleDateFormat("MMM d, h:mm a", locale) }
+
+    val entries by vm.entries.collectAsState()
 
     var selectedSite by remember { mutableStateOf(injectionSites[0]) }
     var dose by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
-    var entries by remember { mutableStateOf(listOf<InjectionSiteEntry>()) }
 
-    val lastUsedBySite: Map<String, InjectionSiteEntry> = remember(entries) {
+    val lastUsedBySite: Map<String, InjectionSiteEntryEntity> = remember(entries) {
         entries.groupBy { it.site }.mapValues { (_, es) -> es.first() }
     }
 
-    fun daysSince(entry: InjectionSiteEntry): Long {
+    fun daysSince(entry: InjectionSiteEntryEntity): Long {
         val diffMs = System.currentTimeMillis() - entry.timestampMs
         return TimeUnit.MILLISECONDS.toDays(diffMs)
     }
@@ -202,15 +198,15 @@ fun InjectionSiteTrackerScreen(onBack: () -> Unit) {
                         Button(
                             onClick = {
                                 val now = System.currentTimeMillis()
-                                entries = listOf(
-                                    InjectionSiteEntry(
+                                vm.insert(
+                                    InjectionSiteEntryEntity(
                                         dateTime = dateFormat.format(Date(now)),
                                         timestampMs = now,
                                         site = selectedSite,
                                         dose = dose.trim(),
                                         notes = notes.trim()
                                     )
-                                ) + entries
+                                )
                                 dose = ""
                                 notes = ""
                             },
@@ -228,7 +224,7 @@ fun InjectionSiteTrackerScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("History (${entries.size})", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Clear") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
@@ -267,7 +263,7 @@ fun InjectionSiteTrackerScreen(onBack: () -> Unit) {
                                     )
                                 }
                             }
-                            IconButton(onClick = { entries = entries.filter { it.id != entry.id } }) {
+                            IconButton(onClick = { vm.delete(entry) }) {
                                 Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
                             }
                         }

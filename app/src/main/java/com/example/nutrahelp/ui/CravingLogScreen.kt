@@ -32,6 +32,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +42,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.CravingEntryEntity
+import com.example.nutrahelp.viewmodel.CravingViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -49,34 +53,19 @@ private val cravingTriggers = listOf("Stress", "Boredom", "Hunger", "Habit", "Em
 private val cravingIntensityLabels = listOf("Mild", "Moderate", "Strong", "Very Strong", "Intense")
 private val cravingOutcomes = listOf("Resisted", "Partially", "Gave In")
 
-private data class CravingEntry(
-    val id: Long = System.nanoTime(),
-    val time: String,
-    val foodName: String,
-    val intensity: Int,
-    val trigger: String,
-    val outcome: String,
-    val notes: String
-)
-
-private fun outcomeColor(outcome: String) = when (outcome) {
-    "Resisted" -> "tertiary"
-    "Partially" -> "secondary"
-    else -> "error"
-}
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun CravingLogScreen(onBack: () -> Unit) {
+fun CravingLogScreen(onBack: () -> Unit, vm: CravingViewModel = viewModel()) {
+    val entries by vm.entries.collectAsState()
+
     var foodName by remember { mutableStateOf("") }
     var selectedIntensity by remember { mutableIntStateOf(2) }
     var selectedTrigger by remember { mutableStateOf(cravingTriggers[0]) }
     var selectedOutcome by remember { mutableStateOf(cravingOutcomes[0]) }
     var notes by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<CravingEntry>()) }
 
-    val todayEntries = run {
+    val todayEntries = remember(entries) {
         val today = SimpleDateFormat("MMM d", Locale.getDefault()).format(Date())
         entries.filter { it.time.startsWith(today) }
     }
@@ -222,8 +211,8 @@ fun CravingLogScreen(onBack: () -> Unit) {
                                     formError = true
                                 } else {
                                     val time = SimpleDateFormat("MMM d, h:mm a", Locale.getDefault()).format(Date())
-                                    entries = listOf(
-                                        CravingEntry(
+                                    vm.insert(
+                                        CravingEntryEntity(
                                             time = time,
                                             foodName = foodName.trim(),
                                             intensity = selectedIntensity,
@@ -231,7 +220,7 @@ fun CravingLogScreen(onBack: () -> Unit) {
                                             outcome = selectedOutcome,
                                             notes = notes.trim()
                                         )
-                                    ) + entries
+                                    )
                                     foodName = ""
                                     selectedIntensity = 2
                                     selectedTrigger = cravingTriggers[0]
@@ -254,7 +243,7 @@ fun CravingLogScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("History (${entries.size})", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Clear") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
@@ -293,7 +282,7 @@ fun CravingLogScreen(onBack: () -> Unit) {
                                     Text(entry.notes, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
-                            IconButton(onClick = { entries = entries.filter { it.id != entry.id } }) {
+                            IconButton(onClick = { vm.delete(entry) }) {
                                 Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
                             }
                         }

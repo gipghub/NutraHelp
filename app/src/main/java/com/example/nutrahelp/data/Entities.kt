@@ -64,3 +64,36 @@ data class AppointmentEntity(
     val notes: String,
     val completed: Boolean,
 )
+
+@Entity(tableName = "nausea_entries")
+data class NauseaEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val dateTime: String,
+    val timeOfDay: String,
+    val severity: Int,
+    val triggers: String,   // comma-separated
+    val remedies: String,   // comma-separated
+    val duration: String,
+    val notes: String,
+)
+
+@Entity(tableName = "injection_site_entries")
+data class InjectionSiteEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val dateTime: String,
+    val timestampMs: Long,
+    val site: String,
+    val dose: String,
+    val notes: String,
+)
+
+@Entity(tableName = "craving_entries")
+data class CravingEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val time: String,
+    val foodName: String,
+    val intensity: Int,
+    val trigger: String,
+    val outcome: String,
+    val notes: String,
+)

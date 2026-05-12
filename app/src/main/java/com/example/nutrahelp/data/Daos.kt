@@ -93,3 +93,48 @@ interface AppointmentDao {
     @Delete
     suspend fun delete(entry: AppointmentEntity)
 }
+
+@Dao
+interface NauseaDao {
+    @Query("SELECT * FROM nausea_entries ORDER BY id DESC")
+    fun getAll(): Flow<List<NauseaEntryEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(entry: NauseaEntryEntity)
+
+    @Delete
+    suspend fun delete(entry: NauseaEntryEntity)
+
+    @Query("DELETE FROM nausea_entries")
+    suspend fun deleteAll()
+}
+
+@Dao
+interface InjectionSiteDao {
+    @Query("SELECT * FROM injection_site_entries ORDER BY id DESC")
+    fun getAll(): Flow<List<InjectionSiteEntryEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(entry: InjectionSiteEntryEntity)
+
+    @Delete
+    suspend fun delete(entry: InjectionSiteEntryEntity)
+
+    @Query("DELETE FROM injection_site_entries")
+    suspend fun deleteAll()
+}
+
+@Dao
+interface CravingDao {
+    @Query("SELECT * FROM craving_entries ORDER BY id DESC")
+    fun getAll(): Flow<List<CravingEntryEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(entry: CravingEntryEntity)
+
+    @Delete
+    suspend fun delete(entry: CravingEntryEntity)
+
+    @Query("DELETE FROM craving_entries")
+    suspend fun deleteAll()
+}
