@@ -45,6 +45,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.nutrahelp.ui.DashboardScreen
 import com.example.nutrahelp.ui.GroceryListScreen
 import com.example.nutrahelp.ui.HomeScreen
 import com.example.nutrahelp.ui.LogScreen
@@ -213,10 +214,12 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         composable("home")     {
-                            HomeScreen(
+                            DashboardScreen(
                                 userName = userName,
                                 onNavigateToProfile = { navController.navigate("profile") },
                                 onNavigateToSettings = { navController.navigate("settings") },
+                                onNavigateToMealLog = { navController.navigate("meallog") },
+                                onNavigateToWeightTracking = { navController.navigate("weighttracking") },
                                 onNavigateToFasting = { navController.navigate("fasting") },
                                 onNavigateToHabits = { navController.navigate("habits") },
                                 onNavigateToWater = { navController.navigate("water") },
