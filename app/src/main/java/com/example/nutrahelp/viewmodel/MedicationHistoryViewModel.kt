@@ -3,17 +3,25 @@ package com.example.nutrahelp.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.nutrahelp.data.InjectionDao
 import com.example.nutrahelp.data.InjectionRecordEntity
 import com.example.nutrahelp.data.NutraHelpDatabase
+import com.example.nutrahelp.data.TitrationDao
 import com.example.nutrahelp.data.TitrationEntryEntity
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class MedicationHistoryViewModel(app: Application) : AndroidViewModel(app) {
-    private val db = NutraHelpDatabase.getInstance(app)
-    private val titrationDao = db.titrationDao()
-    private val injectionDao = db.injectionDao()
+class MedicationHistoryViewModel(
+    app: Application,
+    private val titrationDao: TitrationDao,
+    private val injectionDao: InjectionDao,
+) : AndroidViewModel(app) {
+    constructor(app: Application) : this(
+        app,
+        NutraHelpDatabase.getInstance(app).titrationDao(),
+        NutraHelpDatabase.getInstance(app).injectionDao(),
+    )
 
     val titrations = titrationDao.getAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

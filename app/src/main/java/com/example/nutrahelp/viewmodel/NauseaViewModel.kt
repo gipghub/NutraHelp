@@ -3,14 +3,18 @@ package com.example.nutrahelp.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.nutrahelp.data.NauseaDao
 import com.example.nutrahelp.data.NauseaEntryEntity
 import com.example.nutrahelp.data.NutraHelpDatabase
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class NauseaViewModel(app: Application) : AndroidViewModel(app) {
-    private val dao = NutraHelpDatabase.getInstance(app).nauseaDao()
+class NauseaViewModel(
+    app: Application,
+    private val dao: NauseaDao,
+) : AndroidViewModel(app) {
+    constructor(app: Application) : this(app, NutraHelpDatabase.getInstance(app).nauseaDao())
 
     val entries = dao.getAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

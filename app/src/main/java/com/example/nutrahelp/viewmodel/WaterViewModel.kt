@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nutrahelp.data.NutraHelpDatabase
+import com.example.nutrahelp.data.WaterDao
 import com.example.nutrahelp.data.WaterEntryEntity
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -12,8 +13,11 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class WaterViewModel(app: Application) : AndroidViewModel(app) {
-    private val dao = NutraHelpDatabase.getInstance(app).waterDao()
+class WaterViewModel(
+    app: Application,
+    private val dao: WaterDao,
+) : AndroidViewModel(app) {
+    constructor(app: Application) : this(app, NutraHelpDatabase.getInstance(app).waterDao())
     private val todayKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
     val todayEntries = dao.getForDate(todayKey)

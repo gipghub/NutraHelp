@@ -3,6 +3,7 @@ package com.example.nutrahelp.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.nutrahelp.data.DiaryDao
 import com.example.nutrahelp.data.DiaryEntryEntity
 import com.example.nutrahelp.data.NutraHelpDatabase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -15,8 +16,11 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-class DiaryViewModel(app: Application) : AndroidViewModel(app) {
-    private val dao = NutraHelpDatabase.getInstance(app).diaryDao()
+class DiaryViewModel(
+    app: Application,
+    private val dao: DiaryDao,
+) : AndroidViewModel(app) {
+    constructor(app: Application) : this(app, NutraHelpDatabase.getInstance(app).diaryDao())
     private val dateFmt = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     val dateOffset = MutableStateFlow(0)
