@@ -85,23 +85,20 @@ class WaterViewModelTest {
     fun resetToday_clearsAllTodayEntries() = runTest(testDispatcher) {
         vm.insert(WaterEntryEntity(date = todayKey, time = "8:00 AM", amountMl = 250))
         vm.insert(WaterEntryEntity(date = todayKey, time = "9:00 AM", amountMl = 300))
-        advanceUntilIdle()
 
-        assertEquals(2, db.waterDao().getForDate(todayKey).first().size)
+        assertEquals(2, db.waterDao().getForDate(todayKey).first { it.size == 2 }.size)
 
         vm.resetToday()
-        advanceUntilIdle()
 
-        assertTrue(db.waterDao().getForDate(todayKey).first().isEmpty())
+        assertTrue(db.waterDao().getForDate(todayKey).first { it.isEmpty() }.isEmpty())
     }
 
     @Test
     fun weeklyTotals_reflectsInsertions() = runTest(testDispatcher) {
         vm.insert(WaterEntryEntity(date = todayKey, time = "8:00 AM", amountMl = 250))
         vm.insert(WaterEntryEntity(date = todayKey, time = "12:00 PM", amountMl = 350))
-        advanceUntilIdle()
 
-        val totals = db.waterDao().getWeeklyTotals().first()
+        val totals = db.waterDao().getWeeklyTotals().first { it.isNotEmpty() && it[0].total == 600 }
         assertEquals(1, totals.size)
         assertEquals(600, totals[0].total)
     }

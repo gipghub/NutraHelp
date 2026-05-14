@@ -74,13 +74,11 @@ class InjectionSiteViewModelTest {
     fun deleteAll_clearsData() = runTest(testDispatcher) {
         vm.insert(entry("Thigh — Left"))
         vm.insert(entry("Thigh — Right"))
-        advanceUntilIdle()
 
-        assertEquals(2, db.injectionSiteDao().getAll().first().size)
+        assertEquals(2, db.injectionSiteDao().getAll().first { it.size == 2 }.size)
 
         vm.deleteAll()
-        advanceUntilIdle()
 
-        assertTrue(db.injectionSiteDao().getAll().first().isEmpty())
+        assertTrue(db.injectionSiteDao().getAll().first { it.isEmpty() }.isEmpty())
     }
 }

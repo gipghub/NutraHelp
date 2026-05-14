@@ -63,13 +63,11 @@ class AppointmentViewModelTest {
     @Test
     fun delete_removesData() = runTest(testDispatcher) {
         vm.insert(appt())
-        advanceUntilIdle()
 
-        val inserted = db.appointmentDao().getAll().first().first()
+        val inserted = db.appointmentDao().getAll().first { it.isNotEmpty() }.first()
         vm.delete(inserted)
-        advanceUntilIdle()
 
-        assertTrue(db.appointmentDao().getAll().first().isEmpty())
+        assertTrue(db.appointmentDao().getAll().first { it.isEmpty() }.isEmpty())
     }
 
     @Test

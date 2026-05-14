@@ -57,13 +57,11 @@ class MedicationHistoryViewModelTest {
     @Test
     fun deleteTitration_removesData() = runTest(testDispatcher) {
         vm.insertTitration(TitrationEntryEntity(date = "05/12/2026", medication = "Ozempic", dose = "0.5 mg", reason = "Start", notes = ""))
-        advanceUntilIdle()
 
-        val inserted = db.titrationDao().getAll().first().first()
+        val inserted = db.titrationDao().getAll().first { it.isNotEmpty() }.first()
         vm.deleteTitration(inserted)
-        advanceUntilIdle()
 
-        assertTrue(db.titrationDao().getAll().first().isEmpty())
+        assertTrue(db.titrationDao().getAll().first { it.isEmpty() }.isEmpty())
     }
 
     @Test

@@ -62,25 +62,21 @@ class NauseaViewModelTest {
     @Test
     fun delete_removesData() = runTest(testDispatcher) {
         vm.insert(entry())
-        advanceUntilIdle()
 
-        val inserted = db.nauseaDao().getAll().first().first()
+        val inserted = db.nauseaDao().getAll().first { it.isNotEmpty() }.first()
         vm.delete(inserted)
-        advanceUntilIdle()
 
-        assertTrue(db.nauseaDao().getAll().first().isEmpty())
+        assertTrue(db.nauseaDao().getAll().first { it.isEmpty() }.isEmpty())
     }
 
     @Test
     fun deleteAll_clearsData() = runTest(testDispatcher) {
         repeat(3) { vm.insert(entry()) }
-        advanceUntilIdle()
 
-        assertEquals(3, db.nauseaDao().getAll().first().size)
+        assertEquals(3, db.nauseaDao().getAll().first { it.size == 3 }.size)
 
         vm.deleteAll()
-        advanceUntilIdle()
 
-        assertTrue(db.nauseaDao().getAll().first().isEmpty())
+        assertTrue(db.nauseaDao().getAll().first { it.isEmpty() }.isEmpty())
     }
 }

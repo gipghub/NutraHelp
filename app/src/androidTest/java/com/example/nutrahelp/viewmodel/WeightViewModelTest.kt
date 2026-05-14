@@ -76,9 +76,8 @@ class WeightViewModelTest {
         vm.insert(WeightEntryEntity(id = 1L, date = "2026-05-10", weight = 186f, unit = "lbs"))
         vm.insert(WeightEntryEntity(id = 2L, date = "2026-05-11", weight = 185f, unit = "lbs"))
         vm.insert(WeightEntryEntity(id = 3L, date = "2026-05-12", weight = 184f, unit = "lbs"))
-        advanceUntilIdle()
 
-        val entries = db.weightDao().getAll().first()
+        val entries = db.weightDao().getAll().first { it.size == 3 }
         assertEquals(3, entries.size)
         assertEquals(3L, entries[0].id)
         assertEquals(1L, entries[2].id)
