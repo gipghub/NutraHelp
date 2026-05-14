@@ -54,6 +54,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.viewmodel.ProfileState
+import com.example.nutrahelp.viewmodel.ProfileViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -85,35 +88,37 @@ fun ProfileScreen(
     onBack: () -> Unit,
     onNavigateToMedication: () -> Unit = {},
     onNavigateToAppointments: () -> Unit = {},
+    vm: ProfileViewModel = viewModel(),
 ) {
+    val saved0 = vm.state.value
+
     // Personal info
-    var name by remember { mutableStateOf("") }
-    var age by remember { mutableStateOf("") }
-    var sex by remember { mutableStateOf("Prefer not to say") }
+    var name by remember { mutableStateOf(saved0.name) }
+    var age by remember { mutableStateOf(saved0.age) }
+    var sex by remember { mutableStateOf(saved0.sex) }
     var sexExpanded by remember { mutableStateOf(false) }
-    var primaryGoal by remember { mutableStateOf("Lose Weight") }
+    var primaryGoal by remember { mutableStateOf(saved0.primaryGoal) }
     var goalExpanded by remember { mutableStateOf(false) }
 
     // Body metrics
     val useMetric = LocalUseMetric.current
-    var heightCm by remember { mutableStateOf("") }
-    var currentWeight by remember { mutableStateOf("") }
-    var startingWeight by remember { mutableStateOf("") }
-    var goalWeight by remember { mutableStateOf("") }
+    var heightCm by remember { mutableStateOf(saved0.heightCm) }
+    var currentWeight by remember { mutableStateOf(saved0.currentWeight) }
+    var startingWeight by remember { mutableStateOf(saved0.startingWeight) }
+    var goalWeight by remember { mutableStateOf(saved0.goalWeight) }
 
     // Medication
-    var medication by remember { mutableStateOf(medications[0]) }
+    var medication by remember { mutableStateOf(saved0.medication) }
     var medExpanded by remember { mutableStateOf(false) }
-    var dose by remember { mutableStateOf("") }
-    var injectionDay by remember { mutableStateOf(daysOfWeek[0]) }
+    var dose by remember { mutableStateOf(saved0.dose) }
+    var injectionDay by remember { mutableStateOf(saved0.injectionDay) }
     var dayExpanded by remember { mutableStateOf(false) }
-    var startDate by remember { mutableStateOf("") }
-    var weeksOnMed by remember { mutableStateOf("") }
+    var startDate by remember { mutableStateOf(saved0.startDate) }
+    var weeksOnMed by remember { mutableStateOf(saved0.weeksOnMed) }
 
     // Goals
-    var calorieGoal by remember { mutableStateOf("1600") }
-    var proteinGoal by remember { mutableStateOf("120") }
-    var waterGoal by remember { mutableStateOf("8") }
+    var calorieGoal by remember { mutableStateOf(saved0.calorieGoal) }
+    var proteinGoal by remember { mutableStateOf(saved0.proteinGoal) }
 
     var saved by remember { mutableStateOf(false) }
 
@@ -480,7 +485,17 @@ fun ProfileScreen(
             // ── Save button ───────────────────────────────────────────────────
             item {
                 Button(
-                    onClick = { saved = true },
+                    onClick = {
+                        vm.save(ProfileState(
+                            name = name, age = age, sex = sex, primaryGoal = primaryGoal,
+                            heightCm = heightCm, currentWeight = currentWeight,
+                            startingWeight = startingWeight, goalWeight = goalWeight,
+                            medication = medication, dose = dose, injectionDay = injectionDay,
+                            startDate = startDate, weeksOnMed = weeksOnMed,
+                            calorieGoal = calorieGoal, proteinGoal = proteinGoal,
+                        ))
+                        saved = true
+                    },
                     modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
                 ) {
                     if (saved) Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
