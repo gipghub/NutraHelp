@@ -63,7 +63,7 @@ class CravingViewModelTest {
         vm.insert(entry())
         advanceUntilIdle()
 
-        val inserted = db.cravingDao().getAll().first().first()
+        val inserted = db.cravingDao().getAll().first { it.isNotEmpty() }.first()
         vm.delete(inserted)
         advanceUntilIdle()
 

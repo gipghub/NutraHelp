@@ -69,7 +69,7 @@ class MedicationHistoryViewModelTest {
         vm.insertInjection(InjectionRecordEntity(date = "05/12/2026", medication = "Ozempic", dose = "0.5 mg", notes = "Left thigh"))
         advanceUntilIdle()
 
-        val entries = db.injectionDao().getAll().first()
+        val entries = db.injectionDao().getAll().first { it.isNotEmpty() }
         assertEquals(1, entries.size)
         assertEquals("Left thigh", entries[0].notes)
     }

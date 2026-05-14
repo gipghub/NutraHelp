@@ -54,7 +54,7 @@ class AppointmentViewModelTest {
         vm.insert(appt())
         advanceUntilIdle()
 
-        val entries = db.appointmentDao().getAll().first()
+        val entries = db.appointmentDao().getAll().first { it.isNotEmpty() }
         assertEquals(1, entries.size)
         assertEquals("Dr. Smith", entries[0].provider)
         assertFalse(entries[0].completed)
@@ -75,11 +75,11 @@ class AppointmentViewModelTest {
         vm.insert(appt(completed = false))
         advanceUntilIdle()
 
-        val inserted = db.appointmentDao().getAll().first().first()
+        val inserted = db.appointmentDao().getAll().first { it.isNotEmpty() }.first()
         vm.toggleComplete(inserted)
         advanceUntilIdle()
 
-        assertTrue(db.appointmentDao().getAll().first().first().completed)
+        assertTrue(db.appointmentDao().getAll().first { it.isNotEmpty() }.first().completed)
     }
 
     @Test
@@ -87,10 +87,10 @@ class AppointmentViewModelTest {
         vm.insert(appt(completed = true))
         advanceUntilIdle()
 
-        val inserted = db.appointmentDao().getAll().first().first()
+        val inserted = db.appointmentDao().getAll().first { it.isNotEmpty() }.first()
         vm.toggleComplete(inserted)
         advanceUntilIdle()
 
-        assertFalse(db.appointmentDao().getAll().first().first().completed)
+        assertFalse(db.appointmentDao().getAll().first { it.isNotEmpty() }.first().completed)
     }
 }
