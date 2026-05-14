@@ -36,7 +36,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -70,9 +69,10 @@ fun WaterIntakeLogScreen(onBack: () -> Unit, vm: WaterViewModel = viewModel()) {
     val dateFmt = remember { SimpleDateFormat("EEE", Locale.getDefault()) }
     val dateFmtKey = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
 
-    val defaultGoalMl = if (useMetric) 2000 else ozToMl(64f)
-    var goalMl by remember(useMetric) { mutableIntStateOf(defaultGoalMl) }
-    var goalInput by remember(useMetric) { mutableStateOf(if (useMetric) "2000" else "64") }
+    val goalMl by vm.goalMl.collectAsState()
+    var goalInput by remember(useMetric, goalMl) {
+        mutableStateOf(if (useMetric) "$goalMl" else "%.0f".format(mlToOz(goalMl)))
+    }
     var customAmount by remember { mutableStateOf("") }
 
     val entries by vm.todayEntries.collectAsState()
@@ -311,7 +311,7 @@ fun WaterIntakeLogScreen(onBack: () -> Unit, vm: WaterViewModel = viewModel()) {
                         OutlinedButton(onClick = {
                             val ml = if (useMetric) goalInput.toIntOrNull()
                                      else goalInput.toFloatOrNull()?.let { ozToMl(it) }
-                            if (ml != null && ml > 0) goalMl = ml
+                            if (ml != null && ml > 0) vm.setGoal(ml)
                         }) { Text("Set Goal") }
                     }
                 }

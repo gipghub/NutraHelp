@@ -1,5 +1,6 @@
 package com.example.nutrahelp.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.viewModelScope
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.nutrahelp.data.NutraHelpDatabase
@@ -28,6 +29,8 @@ import java.util.Locale
 @RunWith(AndroidJUnit4::class)
 class WaterViewModelTest {
 
+    private val app = testApp()
+    private val prefs = app.getSharedPreferences("water", Context.MODE_PRIVATE)
     private lateinit var db: NutraHelpDatabase
     private lateinit var vm: WaterViewModel
     private val testDispatcher = UnconfinedTestDispatcher()
@@ -35,9 +38,10 @@ class WaterViewModelTest {
 
     @Before
     fun setup() {
+        prefs.edit().clear().commit()
         Dispatchers.setMain(testDispatcher)
         db = buildTestDb()
-        vm = WaterViewModel(testApp(), db.waterDao())
+        vm = WaterViewModel(app, db.waterDao())
     }
 
     @After
@@ -45,6 +49,7 @@ class WaterViewModelTest {
         vm.viewModelScope.cancel()
         Dispatchers.resetMain()
         db.close()
+        prefs.edit().clear().commit()
     }
 
     @Test
@@ -101,5 +106,37 @@ class WaterViewModelTest {
         val totals = db.waterDao().getWeeklyTotals().first { it.isNotEmpty() && it[0].total == 600 }
         assertEquals(1, totals.size)
         assertEquals(600, totals[0].total)
+    }
+
+    @Test
+    fun goalMl_defaultIs2000() {
+        assertEquals(2000, vm.goalMl.value)
+    }
+
+    @Test
+    fun setGoal_updatesStateImmediately() {
+        vm.setGoal(1500)
+        assertEquals(1500, vm.goalMl.value)
+    }
+
+    @Test
+    fun setGoal_persistsThroughViewModelRecreation() {
+        vm.setGoal(3000)
+        vm.viewModelScope.cancel()
+
+        val vm2 = WaterViewModel(app, db.waterDao())
+        assertEquals(3000, vm2.goalMl.value)
+        vm2.viewModelScope.cancel()
+    }
+
+    @Test
+    fun setGoal_lastWriteWins() {
+        vm.setGoal(1000)
+        vm.setGoal(2500)
+        assertEquals(2500, vm.goalMl.value)
+
+        val vm2 = WaterViewModel(app, db.waterDao())
+        assertEquals(2500, vm2.goalMl.value)
+        vm2.viewModelScope.cancel()
     }
 }
