@@ -63,7 +63,7 @@ class InjectionSiteViewModelTest {
         vm.insert(entry())
         advanceUntilIdle()
 
-        val inserted = db.injectionSiteDao().getAll().first().first()
+        val inserted = db.injectionSiteDao().getAll().first { it.isNotEmpty() }.first()
         vm.delete(inserted)
         advanceUntilIdle()
 

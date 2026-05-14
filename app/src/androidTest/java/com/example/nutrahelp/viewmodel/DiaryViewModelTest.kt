@@ -112,7 +112,7 @@ class DiaryViewModelTest {
         vm.insert(entry(date = today))
         advanceUntilIdle()
 
-        val inserted = db.diaryDao().getForDate(today).first().first()
+        val inserted = db.diaryDao().getForDate(today).first { it.isNotEmpty() }.first()
         vm.delete(inserted)
         advanceUntilIdle()
 

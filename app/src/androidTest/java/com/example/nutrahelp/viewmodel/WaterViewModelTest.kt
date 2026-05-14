@@ -74,7 +74,7 @@ class WaterViewModelTest {
         vm.insert(WaterEntryEntity(date = todayKey, time = "8:00 AM", amountMl = 250))
         advanceUntilIdle()
 
-        val inserted = db.waterDao().getForDate(todayKey).first().first()
+        val inserted = db.waterDao().getForDate(todayKey).first { it.isNotEmpty() }.first()
         vm.delete(inserted)
         advanceUntilIdle()
 
