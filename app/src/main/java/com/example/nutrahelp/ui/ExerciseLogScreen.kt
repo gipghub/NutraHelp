@@ -184,7 +184,7 @@ fun ExerciseLogScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || mins == null || mins <= 0) {
                                     formError = true
                                 } else {
-                                    entries = listOf(
+                                    entries = (listOf(
                                         ExerciseEntry(
                                             date = date,
                                             type = exerciseType,
@@ -192,7 +192,7 @@ fun ExerciseLogScreen(onBack: () -> Unit) {
                                             intensity = intensity,
                                             notes = notes.trim()
                                         )
-                                    ) + entries
+                                    ) + entries).sortedByDescending { it.id }
                                     date = todayStr
                                     duration = ""
                                     notes = ""
