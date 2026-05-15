@@ -15,6 +15,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -25,18 +27,23 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.nutrahelp.data.FoodSearchResult
+import com.example.nutrahelp.data.OpenFoodFactsRepository
+import kotlinx.coroutines.launch
 
 private data class FiberEntry(
     val id: Long = System.nanoTime(),
@@ -63,6 +70,12 @@ fun FiberTrackerScreen(onBack: () -> Unit) {
     var customFood by remember { mutableStateOf("") }
     var customFiber by remember { mutableStateOf("") }
     var entries by remember { mutableStateOf(listOf<FiberEntry>()) }
+
+    var searchQuery by remember { mutableStateOf("") }
+    var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
+    var isSearching by remember { mutableStateOf(false) }
+    var searchError by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     val totalFiber = entries.sumOf { it.fiberG.toDouble() }.toFloat()
     val progress = if (dailyGoal > 0) (totalFiber / dailyGoal).coerceAtMost(1f) else 0f
@@ -168,6 +181,71 @@ fun FiberTrackerScreen(onBack: () -> Unit) {
                                     }
                                 }
                                 if (pair.size == 1) androidx.compose.foundation.layout.Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
+
+                        HorizontalDivider()
+
+                        Text("Search Food Database", style = MaterialTheme.typography.labelMedium)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                            OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it; searchError = false },
+                                label = { Text("Search Open Food Facts…") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f)
+                            )
+                            if (isSearching) {
+                                CircularProgressIndicator(modifier = Modifier.padding(4.dp), strokeWidth = 2.dp)
+                            } else {
+                                OutlinedButton(
+                                    onClick = {
+                                        if (searchQuery.isNotBlank()) {
+                                            scope.launch {
+                                                isSearching = true; searchError = false
+                                                val results = OpenFoodFactsRepository.search(searchQuery)
+                                                searchResults = results
+                                                searchError = results.isEmpty()
+                                                isSearching = false
+                                            }
+                                        }
+                                    },
+                                    enabled = searchQuery.isNotBlank()
+                                ) { Text("Search") }
+                            }
+                        }
+                        if (searchError) {
+                            Text("No results found.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                        }
+                        if (searchResults.isNotEmpty()) {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                            ) {
+                                Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Text("Tap to fill (per 100g):", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    searchResults.forEach { result ->
+                                        TextButton(
+                                            onClick = {
+                                                customFood = result.name
+                                                customFiber = result.fiberPer100g?.let { "%.1f".format(it) } ?: ""
+                                                searchResults = emptyList(); searchQuery = ""
+                                            },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                        ) {
+                                            Column(modifier = Modifier.fillMaxWidth()) {
+                                                Text(result.name, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
+                                                val details = listOfNotNull(
+                                                    result.fiberPer100g?.let { "${"%.1f".format(it)}g fiber" },
+                                                    result.caloriesPer100g?.let { "${it} kcal" }
+                                                ).joinToString(" · ")
+                                                if (details.isNotBlank()) Text(details, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            }
+                                        }
+                                        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                                    }
+                                }
                             }
                         }
 

@@ -11,7 +11,8 @@ data class FoodSearchResult(
     val caloriesPer100g: Int?,
     val proteinPer100g: Float?,
     val carbsPer100g: Float?,
-    val fatPer100g: Float?
+    val fatPer100g: Float?,
+    val fiberPer100g: Float? = null
 )
 
 object OpenFoodFactsRepository {
@@ -34,7 +35,8 @@ object OpenFoodFactsRepository {
                 val protein = n?.optDouble("proteins_100g")?.takeIf { !it.isNaN() && it >= 0 }?.toFloat()
                 val carbs = n?.optDouble("carbohydrates_100g")?.takeIf { !it.isNaN() && it >= 0 }?.toFloat()
                 val fat = n?.optDouble("fat_100g")?.takeIf { !it.isNaN() && it >= 0 }?.toFloat()
-                FoodSearchResult(name, cal, protein, carbs, fat)
+                val fiber = n?.optDouble("fiber_100g")?.takeIf { !it.isNaN() && it >= 0 }?.toFloat()
+                FoodSearchResult(name, cal, protein, carbs, fat, fiber)
             }
         }.getOrDefault(emptyList())
     }
