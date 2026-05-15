@@ -7,8 +7,11 @@ import com.example.nutrahelp.data.AppointmentDao
 import com.example.nutrahelp.data.AppointmentEntity
 import com.example.nutrahelp.data.NutraHelpDatabase
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class AppointmentViewModel(
     app: Application,
@@ -16,7 +19,12 @@ class AppointmentViewModel(
 ) : AndroidViewModel(app) {
     constructor(app: Application) : this(app, NutraHelpDatabase.getInstance(app).appointmentDao())
 
+    private val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+
     val appointments = dao.getAll()
+        .map { list ->
+            list.sortedWith(compareByDescending { runCatching { dateFormat.parse(it.date) }.getOrNull() })
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun insert(entry: AppointmentEntity) = viewModelScope.launch { dao.insert(entry) }
