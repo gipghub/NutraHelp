@@ -71,7 +71,7 @@ fun SodiumTrackerScreen(onBack: () -> Unit) {
     val overLimit = totalSodium > dailyGoal
 
     fun logFood(name: String, mg: Int) {
-        entries = listOf(SodiumEntry(foodName = name, sodiumMg = mg)) + entries
+        entries = (listOf(SodiumEntry(foodName = name, sodiumMg = mg)) + entries).sortedByDescending { it.id }
     }
 
     Scaffold(
