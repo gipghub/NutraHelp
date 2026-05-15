@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WeightDao {
-    @Query("SELECT * FROM weight_entries ORDER BY id DESC")
+    @Query("SELECT * FROM weight_entries ORDER BY date DESC, id DESC")
     fun getAll(): Flow<List<WeightEntryEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
