@@ -111,7 +111,7 @@ interface NauseaDao {
 
 @Dao
 interface InjectionSiteDao {
-    @Query("SELECT * FROM injection_site_entries ORDER BY id DESC")
+    @Query("SELECT * FROM injection_site_entries ORDER BY timestampMs DESC")
     fun getAll(): Flow<List<InjectionSiteEntryEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
