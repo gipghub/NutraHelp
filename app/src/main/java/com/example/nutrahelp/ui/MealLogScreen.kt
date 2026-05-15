@@ -22,12 +22,14 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
@@ -41,15 +43,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.nutrahelp.data.FoodSearchResult
 import com.example.nutrahelp.data.Meal
 import com.example.nutrahelp.data.MealCategory
+import com.example.nutrahelp.data.OpenFoodFactsRepository
 import com.example.nutrahelp.data.sampleMeals
+import kotlinx.coroutines.launch
 
 private data class LoggedEntry(val id: Long = System.nanoTime(), val meal: Meal)
 
@@ -407,11 +414,78 @@ private fun CustomMealDialog(
     var calories by remember { mutableStateOf("") }
     var protein by remember { mutableStateOf("") }
 
+    var searchQuery by remember { mutableStateOf("") }
+    var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
+    var isSearching by remember { mutableStateOf(false) }
+    var searchError by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Custom ${category.displayName}") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it; searchError = false },
+                        label = { Text("Search Open Food Facts…") },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (isSearching) {
+                        CircularProgressIndicator(modifier = Modifier.padding(4.dp), strokeWidth = 2.dp)
+                    } else {
+                        OutlinedButton(
+                            onClick = {
+                                if (searchQuery.isNotBlank()) {
+                                    scope.launch {
+                                        isSearching = true; searchError = false
+                                        val results = OpenFoodFactsRepository.search(searchQuery)
+                                        searchResults = results
+                                        searchError = results.isEmpty()
+                                        isSearching = false
+                                    }
+                                }
+                            },
+                            enabled = searchQuery.isNotBlank()
+                        ) { Text("Search") }
+                    }
+                }
+                if (searchError) {
+                    Text("No results found.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                }
+                if (searchResults.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text("Tap to fill (per 100g):", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        searchResults.forEach { result ->
+                            TextButton(
+                                onClick = {
+                                    name = result.name
+                                    calories = result.caloriesPer100g?.toString() ?: ""
+                                    protein = result.proteinPer100g?.toInt()?.toString() ?: ""
+                                    searchResults = emptyList(); searchQuery = ""
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    Text(result.name, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
+                                    val details = listOfNotNull(
+                                        result.caloriesPer100g?.let { "${it} kcal" },
+                                        result.proteinPer100g?.let { "P:${"%.1f".format(it)}g" },
+                                        result.carbsPer100g?.let { "C:${"%.1f".format(it)}g" }
+                                    ).joinToString(" · ")
+                                    if (details.isNotBlank()) Text(details, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                            HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                        }
+                    }
+                }
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -419,7 +493,7 @@ private fun CustomMealDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = calories,
                         onValueChange = { calories = it.filter { c -> c.isDigit() } },
