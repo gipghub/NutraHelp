@@ -130,7 +130,9 @@ fun BodyMeasurementsScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || parsedValues.isEmpty()) {
                                     formError = true
                                 } else {
-                                    entries = listOf(MeasurementEntry(date = date, unit = unit, values = parsedValues)) + entries
+                                    val fmt = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+                                    entries = (listOf(MeasurementEntry(date = date, unit = unit, values = parsedValues)) + entries)
+                                        .sortedByDescending { runCatching { fmt.parse(it.date) }.getOrNull() }
                                     inputs = measurementFields.associateWith { "" }
                                     date = todayStr
                                     formError = false
