@@ -15,21 +15,26 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +42,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.nutrahelp.data.FoodSearchResult
+import com.example.nutrahelp.data.OpenFoodFactsRepository
+import kotlinx.coroutines.launch
 
 private data class MacroEntry(
     val id: Long = System.nanoTime(),
@@ -64,6 +72,12 @@ fun MacroTrackerScreen(onBack: () -> Unit) {
     var formError by remember { mutableStateOf(false) }
 
     var entries by remember { mutableStateOf(listOf<MacroEntry>()) }
+
+    var searchQuery by remember { mutableStateOf("") }
+    var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
+    var isSearching by remember { mutableStateOf(false) }
+    var searchError by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     val totalCarbs = entries.sumOf { it.carbsG.toDouble() }.toFloat()
     val totalProtein = entries.sumOf { it.proteinG.toDouble() }.toFloat()
@@ -132,6 +146,73 @@ fun MacroTrackerScreen(onBack: () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Text("Log Food", style = MaterialTheme.typography.titleMedium)
+
+                        // Open Food Facts search
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                            OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it; searchError = false },
+                                label = { Text("Search food database…") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f)
+                            )
+                            if (isSearching) {
+                                CircularProgressIndicator(modifier = Modifier.padding(4.dp), strokeWidth = 2.dp)
+                            } else {
+                                OutlinedButton(
+                                    onClick = {
+                                        if (searchQuery.isNotBlank()) {
+                                            scope.launch {
+                                                isSearching = true; searchError = false
+                                                val results = OpenFoodFactsRepository.search(searchQuery)
+                                                searchResults = results
+                                                searchError = results.isEmpty()
+                                                isSearching = false
+                                            }
+                                        }
+                                    },
+                                    enabled = searchQuery.isNotBlank()
+                                ) { Text("Search") }
+                            }
+                        }
+                        if (searchError) {
+                            Text("No results found.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                        }
+                        if (searchResults.isNotEmpty()) {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                            ) {
+                                Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Text("Tap to fill (per 100g):", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    searchResults.forEach { result ->
+                                        TextButton(
+                                            onClick = {
+                                                foodName = result.name
+                                                carbInput = result.carbsPer100g?.let { "%.1f".format(it) } ?: ""
+                                                proteinInput = result.proteinPer100g?.let { "%.1f".format(it) } ?: ""
+                                                fatInput = result.fatPer100g?.let { "%.1f".format(it) } ?: ""
+                                                searchResults = emptyList(); searchQuery = ""
+                                            },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                        ) {
+                                            Column(modifier = Modifier.fillMaxWidth()) {
+                                                Text(result.name, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
+                                                val details = listOfNotNull(
+                                                    result.caloriesPer100g?.let { "${it} kcal" },
+                                                    result.carbsPer100g?.let { "C:${"%.1f".format(it)}g" },
+                                                    result.proteinPer100g?.let { "P:${"%.1f".format(it)}g" },
+                                                    result.fatPer100g?.let { "F:${"%.1f".format(it)}g" }
+                                                ).joinToString(" · ")
+                                                if (details.isNotBlank()) Text(details, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            }
+                                        }
+                                        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                                    }
+                                }
+                            }
+                        }
 
                         OutlinedTextField(
                             value = foodName,

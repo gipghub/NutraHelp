@@ -9,7 +9,9 @@ import java.net.URLEncoder
 data class FoodSearchResult(
     val name: String,
     val caloriesPer100g: Int?,
-    val proteinPer100g: Float?
+    val proteinPer100g: Float?,
+    val carbsPer100g: Float?,
+    val fatPer100g: Float?
 )
 
 object OpenFoodFactsRepository {
@@ -27,12 +29,12 @@ object OpenFoodFactsRepository {
                 val product = products.getJSONObject(i)
                 val name = product.optString("product_name").trim()
                 if (name.isBlank()) return@mapNotNull null
-                val nutriments = product.optJSONObject("nutriments")
-                val cal = nutriments?.optDouble("energy-kcal_100g")
-                    ?.takeIf { !it.isNaN() && it > 0 }?.toInt()
-                val protein = nutriments?.optDouble("proteins_100g")
-                    ?.takeIf { !it.isNaN() && it >= 0 }?.toFloat()
-                FoodSearchResult(name, cal, protein)
+                val n = product.optJSONObject("nutriments")
+                val cal = n?.optDouble("energy-kcal_100g")?.takeIf { !it.isNaN() && it > 0 }?.toInt()
+                val protein = n?.optDouble("proteins_100g")?.takeIf { !it.isNaN() && it >= 0 }?.toFloat()
+                val carbs = n?.optDouble("carbohydrates_100g")?.takeIf { !it.isNaN() && it >= 0 }?.toFloat()
+                val fat = n?.optDouble("fat_100g")?.takeIf { !it.isNaN() && it >= 0 }?.toFloat()
+                FoodSearchResult(name, cal, protein, carbs, fat)
             }
         }.getOrDefault(emptyList())
     }
