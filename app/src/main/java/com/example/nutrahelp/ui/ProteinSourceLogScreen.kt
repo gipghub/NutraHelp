@@ -71,7 +71,7 @@ fun ProteinSourceLogScreen(onBack: () -> Unit) {
     val goalReached = totalProtein >= dailyGoal
 
     fun logFood(name: String, protein: Float) {
-        entries = listOf(ProteinEntry(foodName = name, proteinG = protein)) + entries
+        entries = (listOf(ProteinEntry(foodName = name, proteinG = protein)) + entries).sortedByDescending { it.id }
     }
 
     Scaffold(
