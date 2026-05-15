@@ -172,7 +172,7 @@ fun FastingTimerScreen(onBack: () -> Unit) {
                                         isRunning = false
                                         if (elapsedSeconds > 0) {
                                             val date = SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date())
-                                            sessions = listOf(FastingSession(date = date, durationSeconds = elapsedSeconds, goalHours = goalHours)) + sessions
+                                            sessions = (listOf(FastingSession(date = date, durationSeconds = elapsedSeconds, goalHours = goalHours)) + sessions).sortedByDescending { it.id }
                                         }
                                         elapsedSeconds = 0L
                                     },
