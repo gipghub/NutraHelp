@@ -165,14 +165,14 @@ fun SideEffectsScreen(onBack: () -> Unit) {
                                 if (date.isBlank()) {
                                     formError = true
                                 } else {
-                                    entries = listOf(
+                                    entries = (listOf(
                                         SideEffectEntry(
                                             date = date,
                                             effect = effect,
                                             severity = severity,
                                             notes = notes.trim()
                                         )
-                                    ) + entries
+                                    ) + entries).sortedByDescending { it.id }
                                     date = todayStr
                                     severity = 1
                                     notes = ""
