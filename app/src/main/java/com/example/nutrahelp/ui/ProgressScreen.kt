@@ -49,7 +49,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private data class WeightEntry(val date: String, val weight: Float, val unit: String)
+private data class WeightEntry(val id: Long = System.nanoTime(), val date: String, val weight: Float, val unit: String)
 
 @Composable
 fun ProgressScreen(
@@ -214,7 +214,7 @@ fun ProgressScreen(
                                 errorMessage = "Enter a valid weight"
                             } else {
                                 val today = SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date())
-                                entries = listOf(WeightEntry(today, w, unit)) + entries
+                                entries = (listOf(WeightEntry(date = today, weight = w, unit = unit)) + entries).sortedByDescending { it.id }
                                 weightInput = ""
                                 errorMessage = null
                             }
