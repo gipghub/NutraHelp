@@ -241,13 +241,13 @@ fun RecipeNutritionCalculatorScreen(onBack: () -> Unit) {
                                 if (ingName.isBlank() || cal == null || cal < 0) {
                                     formError = true
                                 } else {
-                                    ingredients = ingredients + RecipeIngredient(
+                                    ingredients = (ingredients + RecipeIngredient(
                                         name = ingName.trim(),
                                         calories = cal,
                                         proteinG = ingProtein.toFloatOrNull() ?: 0f,
                                         carbsG = ingCarbs.toFloatOrNull() ?: 0f,
                                         fatG = ingFat.toFloatOrNull() ?: 0f
-                                    )
+                                    )).sortedByDescending { it.id }
                                     ingName = ""; ingCal = ""; ingProtein = ""; ingCarbs = ""; ingFat = ""
                                     formError = false
                                 }
