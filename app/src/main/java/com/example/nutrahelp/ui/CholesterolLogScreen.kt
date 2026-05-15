@@ -205,7 +205,7 @@ fun CholesterolLogScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || (t == null && h == null && l == null && tri == null)) {
                                     formError = true
                                 } else {
-                                    entries = listOf(CholesterolEntry(date = date, total = t, hdl = h, ldl = l, triglycerides = tri, notes = notes.trim())) + entries
+                                    entries = (listOf(CholesterolEntry(date = date, total = t, hdl = h, ldl = l, triglycerides = tri, notes = notes.trim())) + entries).sortedByDescending { it.id }
                                     totalInput = ""; hdlInput = ""; ldlInput = ""; triInput = ""; notes = ""; date = todayStr; formError = false
                                 }
                             },
