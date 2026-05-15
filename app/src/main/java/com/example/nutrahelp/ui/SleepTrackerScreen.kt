@@ -171,7 +171,7 @@ fun SleepTrackerScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || h == null) {
                                     formError = true
                                 } else {
-                                    entries = listOf(
+                                    entries = (listOf(
                                         SleepEntry(
                                             date = date,
                                             bedtime = bedtime,
@@ -180,7 +180,7 @@ fun SleepTrackerScreen(onBack: () -> Unit) {
                                             quality = quality,
                                             notes = notes.trim()
                                         )
-                                    ) + entries
+                                    ) + entries).sortedByDescending { it.id }
                                     bedtime = ""
                                     wakeTime = ""
                                     hoursSlept = ""
