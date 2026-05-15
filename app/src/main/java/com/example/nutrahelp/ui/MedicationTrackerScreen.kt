@@ -151,14 +151,14 @@ fun MedicationTrackerScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || dose.isBlank()) {
                                     formError = true
                                 } else {
-                                    entries = listOf(
+                                    entries = (listOf(
                                         InjectionEntry(
                                             date = date,
                                             medication = medication,
                                             dose = dose,
                                             notes = notes.trim()
                                         )
-                                    ) + entries
+                                    ) + entries).sortedByDescending { it.id }
                                     date = todayStr
                                     dose = ""
                                     notes = ""
