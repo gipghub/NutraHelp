@@ -71,7 +71,7 @@ fun SugarTrackerScreen(onBack: () -> Unit) {
     val overLimit = totalSugar > dailyGoal
 
     fun logFood(name: String, g: Int) {
-        entries = listOf(SugarEntry(foodName = name, sugarG = g)) + entries
+        entries = (listOf(SugarEntry(foodName = name, sugarG = g)) + entries).sortedByDescending { it.id }
     }
 
     Scaffold(
