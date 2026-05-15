@@ -76,7 +76,7 @@ fun CaffeineTrackerScreen(onBack: () -> Unit) {
 
     fun logDrink(name: String, mg: Int) {
         val time = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
-        entries = listOf(CaffeineEntry(drinkName = name, caffeineMg = mg, time = time)) + entries
+        entries = (listOf(CaffeineEntry(drinkName = name, caffeineMg = mg, time = time)) + entries).sortedByDescending { it.id }
     }
 
     Scaffold(
