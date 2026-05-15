@@ -177,14 +177,14 @@ fun EnergyLevelLogScreen(onBack: () -> Unit) {
 
                         Button(
                             onClick = {
-                                entries = listOf(
+                                entries = (listOf(
                                     EnergyEntry(
                                         date = todayStr,
                                         timeOfDay = selectedTimeOfDay,
                                         energyLevel = energyLevel,
                                         notes = notes.trim()
                                     )
-                                ) + entries
+                                ) + entries).sortedByDescending { it.id }
                                 notes = ""
                                 energyLevel = 5
                             },
