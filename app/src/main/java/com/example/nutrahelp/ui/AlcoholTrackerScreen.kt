@@ -64,7 +64,7 @@ fun AlcoholTrackerScreen(onBack: () -> Unit) {
     val totalDrinks = entries.size
 
     fun logDrink(name: String, cal: Int) {
-        entries = listOf(AlcoholEntry(drinkName = name, calories = cal)) + entries
+        entries = (listOf(AlcoholEntry(drinkName = name, calories = cal)) + entries).sortedByDescending { it.id }
     }
 
     Scaffold(
