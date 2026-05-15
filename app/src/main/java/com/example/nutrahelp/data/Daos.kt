@@ -45,7 +45,7 @@ data class DateTotal(val date: String, val total: Int)
 
 @Dao
 interface DiaryDao {
-    @Query("SELECT * FROM diary_entries WHERE date = :date ORDER BY id ASC")
+    @Query("SELECT * FROM diary_entries WHERE date = :date ORDER BY id DESC")
     fun getForDate(date: String): Flow<List<DiaryEntryEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
