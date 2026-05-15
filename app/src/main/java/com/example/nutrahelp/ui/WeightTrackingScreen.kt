@@ -66,9 +66,9 @@ fun WeightTrackingScreen(onBack: () -> Unit = {}, vm: WeightViewModel = viewMode
     val unit = if (useMetric) "kg" else "lbs"
 
     val records by vm.entries.collectAsState()
+    val goalWeight by vm.goalWeight.collectAsState()
     var weightInput by remember { mutableStateOf("") }
     var goalInput by remember { mutableStateOf("") }
-    var goalWeight by remember { mutableStateOf<Float?>(null) }
     var weightError by remember { mutableStateOf<String?>(null) }
     var goalError by remember { mutableStateOf<String?>(null) }
 
@@ -237,7 +237,7 @@ fun WeightTrackingScreen(onBack: () -> Unit = {}, vm: WeightViewModel = viewMode
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End
                             ) {
-                                androidx.compose.material3.TextButton(onClick = { goalWeight = null; goalInput = "" }) {
+                                androidx.compose.material3.TextButton(onClick = { vm.setGoalWeight(null); goalInput = "" }) {
                                     Text("Clear goal")
                                 }
                             }
@@ -260,7 +260,7 @@ fun WeightTrackingScreen(onBack: () -> Unit = {}, vm: WeightViewModel = viewMode
                                     onClick = {
                                         val g = goalInput.toFloatOrNull()
                                         if (g == null || g <= 0f) goalError = "Enter a valid weight"
-                                        else { goalWeight = g; goalError = null }
+                                        else { vm.setGoalWeight(g); goalError = null }
                                     }
                                 ) { Text("Set") }
                             }
