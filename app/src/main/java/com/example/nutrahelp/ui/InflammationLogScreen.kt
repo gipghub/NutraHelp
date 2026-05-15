@@ -189,14 +189,14 @@ fun InflammationLogScreen(onBack: () -> Unit) {
                                 if (selectedSymptoms.isEmpty()) {
                                     formError = true
                                 } else {
-                                    entries = listOf(
+                                    entries = (listOf(
                                         InflammationEntry(
                                             date = today,
                                             symptoms = selectedSymptoms,
                                             severity = selectedSeverity,
                                             notes = notes.trim()
                                         )
-                                    ) + entries
+                                    ) + entries).sortedByDescending { it.id }
                                     selectedSymptoms = setOf()
                                     selectedSeverity = 0
                                     notes = ""
