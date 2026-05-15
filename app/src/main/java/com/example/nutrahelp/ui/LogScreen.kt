@@ -112,7 +112,7 @@ fun LogScreen(
         MealPickerDialog(
             category = category,
             onSelect = { meal ->
-                loggedMeals = loggedMeals + LogEntry(meal = meal)
+                loggedMeals = (loggedMeals + LogEntry(meal = meal)).sortedByDescending { it.id }
                 dialogCategory = null
             },
             onDismiss = { dialogCategory = null }
