@@ -9,8 +9,11 @@ import com.example.nutrahelp.data.NutraHelpDatabase
 import com.example.nutrahelp.data.TitrationDao
 import com.example.nutrahelp.data.TitrationEntryEntity
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class MedicationHistoryViewModel(
     app: Application,
@@ -23,10 +26,15 @@ class MedicationHistoryViewModel(
         NutraHelpDatabase.getInstance(app).injectionDao(),
     )
 
+    private val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+
     val titrations = titrationDao.getAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val injections = injectionDao.getAll()
+        .map { list ->
+            list.sortedWith(compareByDescending { runCatching { dateFormat.parse(it.date) }.getOrNull() })
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun insertTitration(entry: TitrationEntryEntity) =
