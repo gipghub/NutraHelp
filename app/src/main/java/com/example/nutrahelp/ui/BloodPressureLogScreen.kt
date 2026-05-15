@@ -192,7 +192,7 @@ fun BloodPressureLogScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || sys == null || dia == null) {
                                     formError = true
                                 } else {
-                                    entries = listOf(
+                                    entries = (listOf(
                                         BpEntry(
                                             date = date,
                                             systolic = sys,
@@ -200,7 +200,7 @@ fun BloodPressureLogScreen(onBack: () -> Unit) {
                                             pulse = pulseInput.toIntOrNull(),
                                             notes = notes.trim()
                                         )
-                                    ) + entries
+                                    ) + entries).sortedByDescending { it.id }
                                     systolicInput = ""; diastolicInput = ""; pulseInput = ""; notes = ""
                                     date = todayStr; formError = false
                                 }
