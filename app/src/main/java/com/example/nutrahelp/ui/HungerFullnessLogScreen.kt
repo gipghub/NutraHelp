@@ -168,14 +168,14 @@ fun HungerFullnessLogScreen(onBack: () -> Unit) {
                                 if (mealName.isBlank()) {
                                     formError = true
                                 } else {
-                                    entries = listOf(
+                                    entries = (listOf(
                                         HungerEntry(
                                             time = timeInput.trim(),
                                             mealName = mealName.trim(),
                                             hungerBefore = hungerBefore,
                                             fullnessAfter = fullnessAfter
                                         )
-                                    ) + entries
+                                    ) + entries).sortedByDescending { it.id }
                                     mealName = ""
                                     timeInput = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
                                     hungerBefore = 1
