@@ -217,9 +217,9 @@ fun BodyFatTrackerScreen(onBack: () -> Unit) {
                                 if (bf == null || bf < 1f || bf > 70f) {
                                     formError = true
                                 } else {
-                                    entries = listOf(
+                                    entries = (listOf(
                                         BodyFatEntry(date = dateInput.trim(), bodyFatPercent = bf, method = selectedMethod)
-                                    ) + entries
+                                    ) + entries).sortedByDescending { it.id }
                                     bfInput = ""
                                     dateInput = SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date())
                                     formError = false
