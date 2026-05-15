@@ -162,7 +162,7 @@ fun CalorieDeficitTrackerScreen(onBack: () -> Unit) {
                                 if (foodName.isBlank() || cal == null || cal <= 0) {
                                     formError = true
                                 } else {
-                                    entries = listOf(CalorieEntry(foodName = foodName.trim(), calories = cal)) + entries
+                                    entries = (listOf(CalorieEntry(foodName = foodName.trim(), calories = cal)) + entries).sortedByDescending { it.id }
                                     foodName = ""; calorieInput = ""; formError = false
                                 }
                             },
