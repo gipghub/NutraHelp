@@ -29,6 +29,9 @@ class MedicationHistoryViewModel(
     private val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
 
     val titrations = titrationDao.getAll()
+        .map { list ->
+            list.sortedWith(compareByDescending { runCatching { dateFormat.parse(it.date) }.getOrNull() })
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val injections = injectionDao.getAll()
