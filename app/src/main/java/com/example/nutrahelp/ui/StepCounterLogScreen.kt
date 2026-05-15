@@ -175,7 +175,7 @@ fun StepCounterLogScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || steps == null || steps < 0) {
                                     formError = true
                                 } else {
-                                    entries = listOf(StepEntry(date = date, steps = steps, goalMet = steps >= dailyGoal)) + entries
+                                    entries = (listOf(StepEntry(date = date, steps = steps, goalMet = steps >= dailyGoal)) + entries).sortedByDescending { it.id }
                                     stepsInput = ""; date = todayStr; formError = false
                                 }
                             },
