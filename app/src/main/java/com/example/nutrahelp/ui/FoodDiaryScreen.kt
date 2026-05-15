@@ -33,11 +33,13 @@ import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -50,10 +52,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nutrahelp.data.DiaryEntryEntity
+import com.example.nutrahelp.data.FoodSearchResult
+import com.example.nutrahelp.data.OpenFoodFactsRepository
 import com.example.nutrahelp.viewmodel.DiaryViewModel
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -85,6 +91,12 @@ fun FoodDiaryScreen(onBack: () -> Unit, vm: DiaryViewModel = viewModel()) {
     var fNotes by remember { mutableStateOf("") }
     var fError by remember { mutableStateOf(false) }
 
+    var searchQuery by remember { mutableStateOf("") }
+    var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
+    var isSearching by remember { mutableStateOf(false) }
+    var searchError by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
     val cal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, dateOffset) }
     val dateLabel = SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(cal.time)
     val dayLabel = when (dateOffset) {
@@ -99,6 +111,7 @@ fun FoodDiaryScreen(onBack: () -> Unit, vm: DiaryViewModel = viewModel()) {
     fun resetForm() {
         fTime = ""; fMealType = diaryMealTypes[0]; fFoods = ""; fCalories = ""
         fProtein = ""; fHunger = 3; fFullness = 3; fNotes = ""; fError = false
+        searchQuery = ""; searchResults = emptyList(); searchError = false
         showForm = false
     }
 
@@ -218,6 +231,78 @@ fun FoodDiaryScreen(onBack: () -> Unit, vm: DiaryViewModel = viewModel()) {
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Text("New Diary Entry", style = MaterialTheme.typography.titleSmall)
+
+                            // Food database search
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text("Search Food Database", style = MaterialTheme.typography.labelMedium)
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    OutlinedTextField(
+                                        value = searchQuery,
+                                        onValueChange = { searchQuery = it; searchError = false },
+                                        label = { Text("Search Open Food Facts…") },
+                                        singleLine = true,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    if (isSearching) {
+                                        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                                    } else {
+                                        OutlinedButton(
+                                            onClick = {
+                                                if (searchQuery.isNotBlank()) {
+                                                    scope.launch {
+                                                        isSearching = true
+                                                        searchError = false
+                                                        val results = OpenFoodFactsRepository.search(searchQuery)
+                                                        searchResults = results
+                                                        searchError = results.isEmpty()
+                                                        isSearching = false
+                                                    }
+                                                }
+                                            },
+                                            enabled = searchQuery.isNotBlank()
+                                        ) { Text("Search") }
+                                    }
+                                }
+                                if (searchError) {
+                                    Text("No results found. Try a different search term.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                                }
+                                if (searchResults.isNotEmpty()) {
+                                    Card(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                                    ) {
+                                        Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                            Text("Tap a result to fill in the form (values per 100g):", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            Spacer(Modifier.height(4.dp))
+                                            searchResults.forEach { result ->
+                                                TextButton(
+                                                    onClick = {
+                                                        fFoods = result.name
+                                                        fCalories = result.caloriesPer100g?.toString() ?: ""
+                                                        fProtein = result.proteinPer100g?.let { "%.1f".format(it) } ?: ""
+                                                        searchResults = emptyList()
+                                                        searchQuery = ""
+                                                    },
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                                ) {
+                                                    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
+                                                        Text(result.name, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
+                                                        val details = listOfNotNull(
+                                                            result.caloriesPer100g?.let { "${it} kcal" },
+                                                            result.proteinPer100g?.let { "${"%.1f".format(it)}g protein" }
+                                                        ).joinToString(" · ")
+                                                        if (details.isNotBlank()) {
+                                                            Text(details, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                                        }
+                                                    }
+                                                }
+                                                HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
 
                             // Time + meal type
                             OutlinedTextField(
