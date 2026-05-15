@@ -172,12 +172,12 @@ fun MealPrepPlannerScreen(onBack: () -> Unit) {
 
                         Button(
                             onClick = {
-                                savedPlans = listOf(
+                                savedPlans = (listOf(
                                     PrepPlan(
                                         weekLabel = weekLabel.ifBlank { "This Week" },
                                         items = currentItems.map { it.copy() }
                                     )
-                                ) + savedPlans
+                                ) + savedPlans).sortedByDescending { it.id }
                                 currentItems = defaultPrepItems.map { PrepItem(name = it) }
                                 weekLabel = "This Week"
                                 formError = false
