@@ -69,7 +69,7 @@ fun FiberTrackerScreen(onBack: () -> Unit) {
     val goalReached = totalFiber >= dailyGoal
 
     fun logFood(name: String, fiber: Float) {
-        entries = listOf(FiberEntry(foodName = name, fiberG = fiber)) + entries
+        entries = (listOf(FiberEntry(foodName = name, fiberG = fiber)) + entries).sortedByDescending { it.id }
     }
 
     Scaffold(
