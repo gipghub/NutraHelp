@@ -214,14 +214,14 @@ fun VitaminMicronutrientLogScreen(onBack: () -> Unit) {
                                 if (amount == null || amount <= 0f) {
                                     formError = true
                                 } else {
-                                    entries = listOf(
+                                    entries = (listOf(
                                         NutrientEntry(
                                             nutrientName = selectedNutrient.name,
                                             amount = amount,
                                             unit = selectedNutrient.unit,
                                             source = sourceInput.trim().ifBlank { "Supplement" }
                                         )
-                                    ) + entries
+                                    ) + entries).sortedByDescending { it.id }
                                     amountInput = ""
                                     sourceInput = ""
                                     formError = false
