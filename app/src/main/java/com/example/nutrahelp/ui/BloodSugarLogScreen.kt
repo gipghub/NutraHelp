@@ -194,7 +194,7 @@ fun BloodSugarLogScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || v == null || v <= 0f) {
                                     formError = true
                                 } else {
-                                    entries = listOf(BloodSugarEntry(date = date, readingType = readingType, valueMgDl = v, notes = notes.trim())) + entries
+                                    entries = (listOf(BloodSugarEntry(date = date, readingType = readingType, valueMgDl = v, notes = notes.trim())) + entries).sortedByDescending { it.id }
                                     date = todayStr
                                     value = ""
                                     notes = ""
