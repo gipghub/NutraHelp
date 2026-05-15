@@ -13,31 +13,39 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.nutrahelp.data.FoodSearchResult
+import com.example.nutrahelp.data.OpenFoodFactsRepository
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 private val qualityLabels = listOf("Poor", "Fair", "Good", "Great", "Excellent")
 
@@ -62,8 +70,15 @@ fun SleepTrackerScreen(onBack: () -> Unit) {
     var hoursSlept by remember { mutableStateOf("") }
     var quality by remember { mutableIntStateOf(2) }
     var notes by remember { mutableStateOf("") }
+    var eveningFood by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
     var entries by remember { mutableStateOf(listOf<SleepEntry>()) }
+
+    var searchQuery by remember { mutableStateOf("") }
+    var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
+    var isSearching by remember { mutableStateOf(false) }
+    var searchError by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -149,6 +164,78 @@ fun SleepTrackerScreen(onBack: () -> Unit) {
                             }
                         }
 
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("Evening food / snack (optional)", style = MaterialTheme.typography.labelMedium)
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                                OutlinedTextField(
+                                    value = searchQuery,
+                                    onValueChange = { searchQuery = it; searchError = false },
+                                    label = { Text("Search Open Food Facts…") },
+                                    singleLine = true,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                if (isSearching) {
+                                    CircularProgressIndicator(modifier = Modifier.padding(4.dp), strokeWidth = 2.dp)
+                                } else {
+                                    OutlinedButton(
+                                        onClick = {
+                                            if (searchQuery.isNotBlank()) {
+                                                scope.launch {
+                                                    isSearching = true; searchError = false
+                                                    val results = OpenFoodFactsRepository.search(searchQuery)
+                                                    searchResults = results
+                                                    searchError = results.isEmpty()
+                                                    isSearching = false
+                                                }
+                                            }
+                                        },
+                                        enabled = searchQuery.isNotBlank()
+                                    ) { Text("Search") }
+                                }
+                            }
+                            if (searchError) {
+                                Text("No results found.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                            }
+                            if (searchResults.isNotEmpty()) {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                                ) {
+                                    Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        Text("Tap to set as evening food:", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        searchResults.forEach { result ->
+                                            TextButton(
+                                                onClick = {
+                                                    eveningFood = result.name
+                                                    searchResults = emptyList(); searchQuery = ""
+                                                },
+                                                modifier = Modifier.fillMaxWidth(),
+                                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                            ) {
+                                                Column(modifier = Modifier.fillMaxWidth()) {
+                                                    Text(result.name, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
+                                                    val details = listOfNotNull(
+                                                        result.caloriesPer100g?.let { "${it} kcal" },
+                                                        result.sugarsPer100g?.let { "Sugar:${"%.1f".format(it)}g" },
+                                                        result.carbsPer100g?.let { "Carbs:${"%.1f".format(it)}g" }
+                                                    ).joinToString(" · ")
+                                                    if (details.isNotBlank()) Text(details, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                                }
+                                            }
+                                            HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                                        }
+                                    }
+                                }
+                            }
+                            OutlinedTextField(
+                                value = eveningFood,
+                                onValueChange = { eveningFood = it },
+                                label = { Text("Food or snack before bed") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
                         OutlinedTextField(
                             value = notes,
                             onValueChange = { notes = it },
@@ -171,6 +258,10 @@ fun SleepTrackerScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || h == null) {
                                     formError = true
                                 } else {
+                                    val combinedNotes = listOfNotNull(
+                                        eveningFood.trim().takeIf { it.isNotBlank() }?.let { "Evening food: $it" },
+                                        notes.trim().takeIf { it.isNotBlank() }
+                                    ).joinToString(" · ")
                                     entries = (listOf(
                                         SleepEntry(
                                             date = date,
@@ -178,7 +269,7 @@ fun SleepTrackerScreen(onBack: () -> Unit) {
                                             wakeTime = wakeTime,
                                             hoursSlept = h,
                                             quality = quality,
-                                            notes = notes.trim()
+                                            notes = combinedNotes
                                         )
                                     ) + entries).sortedByDescending { it.id }
                                     bedtime = ""
@@ -186,6 +277,9 @@ fun SleepTrackerScreen(onBack: () -> Unit) {
                                     hoursSlept = ""
                                     quality = 2
                                     notes = ""
+                                    eveningFood = ""
+                                    searchQuery = ""
+                                    searchResults = emptyList()
                                     date = todayStr
                                     formError = false
                                 }
