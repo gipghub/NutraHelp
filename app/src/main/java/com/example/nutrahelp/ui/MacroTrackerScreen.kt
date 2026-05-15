@@ -188,9 +188,9 @@ fun MacroTrackerScreen(onBack: () -> Unit) {
                                 if (foodName.isBlank() || (c == 0f && p == 0f && f == 0f)) {
                                     formError = true
                                 } else {
-                                    entries = listOf(
+                                    entries = (listOf(
                                         MacroEntry(foodName = foodName.trim(), carbsG = c, proteinG = p, fatG = f)
-                                    ) + entries
+                                    ) + entries).sortedByDescending { it.id }
                                     foodName = ""; carbInput = ""; proteinInput = ""; fatInput = ""
                                     formError = false
                                 }
