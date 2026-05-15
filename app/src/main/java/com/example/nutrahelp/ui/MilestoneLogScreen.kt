@@ -175,14 +175,14 @@ fun MilestoneLogScreen(onBack: () -> Unit) {
                                 if (titleInput.isBlank()) {
                                     formError = true
                                 } else {
-                                    entries = listOf(
+                                    entries = (listOf(
                                         MilestoneEntry(
                                             date = dateInput.trim(),
                                             category = selectedCategory,
                                             title = titleInput.trim(),
                                             description = descriptionInput.trim()
                                         )
-                                    ) + entries
+                                    ) + entries).sortedByDescending { it.id }
                                     titleInput = ""
                                     descriptionInput = ""
                                     dateInput = SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date())
