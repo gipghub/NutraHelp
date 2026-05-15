@@ -15,6 +15,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -28,20 +30,25 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.nutrahelp.data.FoodSearchResult
+import com.example.nutrahelp.data.OpenFoodFactsRepository
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 private val moodLabels = listOf("Very Low", "Low", "Neutral", "Good", "Great")
 private val emotionTags = listOf(
@@ -66,7 +73,14 @@ fun MoodTrackerScreen(onBack: () -> Unit) {
     var moodLevel by remember { mutableIntStateOf(2) }
     var selectedEmotions by remember { mutableStateOf(setOf<String>()) }
     var notes by remember { mutableStateOf("") }
+    var recentFood by remember { mutableStateOf("") }
     var entries by remember { mutableStateOf(listOf<MoodEntry>()) }
+
+    var searchQuery by remember { mutableStateOf("") }
+    var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
+    var isSearching by remember { mutableStateOf(false) }
+    var searchError by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     val avgMood = if (entries.isNotEmpty()) entries.map { it.moodLevel }.average() else null
 
@@ -160,6 +174,78 @@ fun MoodTrackerScreen(onBack: () -> Unit) {
                             }
                         }
 
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("Recent food / meal (optional)", style = MaterialTheme.typography.labelMedium)
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                                OutlinedTextField(
+                                    value = searchQuery,
+                                    onValueChange = { searchQuery = it; searchError = false },
+                                    label = { Text("Search Open Food Facts…") },
+                                    singleLine = true,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                if (isSearching) {
+                                    CircularProgressIndicator(modifier = Modifier.padding(4.dp), strokeWidth = 2.dp)
+                                } else {
+                                    OutlinedButton(
+                                        onClick = {
+                                            if (searchQuery.isNotBlank()) {
+                                                scope.launch {
+                                                    isSearching = true; searchError = false
+                                                    val results = OpenFoodFactsRepository.search(searchQuery)
+                                                    searchResults = results
+                                                    searchError = results.isEmpty()
+                                                    isSearching = false
+                                                }
+                                            }
+                                        },
+                                        enabled = searchQuery.isNotBlank()
+                                    ) { Text("Search") }
+                                }
+                            }
+                            if (searchError) {
+                                Text("No results found.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                            }
+                            if (searchResults.isNotEmpty()) {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                                ) {
+                                    Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        Text("Tap to set as recent food:", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        searchResults.forEach { result ->
+                                            TextButton(
+                                                onClick = {
+                                                    recentFood = result.name
+                                                    searchResults = emptyList(); searchQuery = ""
+                                                },
+                                                modifier = Modifier.fillMaxWidth(),
+                                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                            ) {
+                                                Column(modifier = Modifier.fillMaxWidth()) {
+                                                    Text(result.name, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
+                                                    val details = listOfNotNull(
+                                                        result.caloriesPer100g?.let { "${it} kcal" },
+                                                        result.sugarsPer100g?.let { "Sugar:${"%.1f".format(it)}g" },
+                                                        result.proteinPer100g?.let { "P:${"%.1f".format(it)}g" }
+                                                    ).joinToString(" · ")
+                                                    if (details.isNotBlank()) Text(details, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                                }
+                                            }
+                                            HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                                        }
+                                    }
+                                }
+                            }
+                            OutlinedTextField(
+                                value = recentFood,
+                                onValueChange = { recentFood = it },
+                                label = { Text("Food or meal that may have affected mood") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
                         OutlinedTextField(
                             value = notes,
                             onValueChange = { notes = it },
@@ -172,18 +258,25 @@ fun MoodTrackerScreen(onBack: () -> Unit) {
                         Button(
                             onClick = {
                                 val time = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
+                                val combinedNotes = listOfNotNull(
+                                    recentFood.trim().takeIf { it.isNotBlank() }?.let { "Food: $it" },
+                                    notes.trim().takeIf { it.isNotBlank() }
+                                ).joinToString(" · ")
                                 entries = listOf(
                                     MoodEntry(
                                         date = todayStr,
                                         time = time,
                                         moodLevel = moodLevel,
                                         emotions = selectedEmotions,
-                                        notes = notes.trim()
+                                        notes = combinedNotes
                                     )
                                 ) + entries
                                 moodLevel = 2
                                 selectedEmotions = setOf()
                                 notes = ""
+                                recentFood = ""
+                                searchQuery = ""
+                                searchResults = emptyList()
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) { Text("Log Mood") }
