@@ -169,14 +169,14 @@ fun LabResultsScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || value.isBlank()) {
                                     formError = true
                                 } else {
-                                    entries = listOf(
+                                    entries = (listOf(
                                         LabEntry(
                                             date = date,
                                             labType = selectedLabType,
                                             value = value.trim(),
                                             notes = notes.trim()
                                         )
-                                    ) + entries
+                                    ) + entries).sortedByDescending { it.id }
                                     date = todayStr
                                     value = ""
                                     notes = ""
