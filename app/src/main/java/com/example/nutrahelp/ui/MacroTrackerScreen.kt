@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,21 +43,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nutrahelp.data.FoodSearchResult
+import com.example.nutrahelp.data.MacroEntryEntity
 import com.example.nutrahelp.data.OpenFoodFactsRepository
+import com.example.nutrahelp.viewmodel.MacroViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.launch
-
-private data class MacroEntry(
-    val id: Long = System.nanoTime(),
-    val foodName: String,
-    val carbsG: Float,
-    val proteinG: Float,
-    val fatG: Float
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MacroTrackerScreen(onBack: () -> Unit) {
+fun MacroTrackerScreen(onBack: () -> Unit, vm: MacroViewModel = viewModel()) {
+    val todayStr = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
+
     var carbGoal by remember { mutableFloatStateOf(150f) }
     var proteinGoal by remember { mutableFloatStateOf(120f) }
     var fatGoal by remember { mutableFloatStateOf(65f) }
@@ -70,8 +73,6 @@ fun MacroTrackerScreen(onBack: () -> Unit) {
     var proteinInput by remember { mutableStateOf("") }
     var fatInput by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-
-    var entries by remember { mutableStateOf(listOf<MacroEntry>()) }
 
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
@@ -269,9 +270,7 @@ fun MacroTrackerScreen(onBack: () -> Unit) {
                                 if (foodName.isBlank() || (c == 0f && p == 0f && f == 0f)) {
                                     formError = true
                                 } else {
-                                    entries = (listOf(
-                                        MacroEntry(foodName = foodName.trim(), carbsG = c, proteinG = p, fatG = f)
-                                    ) + entries).sortedByDescending { it.id }
+                                    vm.insert(MacroEntryEntity(date = todayStr, foodName = foodName.trim(), carbsG = c, proteinG = p, fatG = f))
                                     foodName = ""; carbInput = ""; proteinInput = ""; fatInput = ""
                                     formError = false
                                 }
@@ -332,7 +331,14 @@ fun MacroTrackerScreen(onBack: () -> Unit) {
 
             if (entries.isNotEmpty()) {
                 item {
-                    Text("Food Log", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Food Log", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Reset") }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->
@@ -356,7 +362,7 @@ fun MacroTrackerScreen(onBack: () -> Unit) {
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            IconButton(onClick = { entries = entries.filter { it.id != entry.id } }) {
+                            IconButton(onClick = { vm.delete(entry) }) {
                                 Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
                             }
                         }

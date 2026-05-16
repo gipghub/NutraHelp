@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,8 +43,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.CaffeineEntryEntity
 import com.example.nutrahelp.data.FoodSearchResult
 import com.example.nutrahelp.data.OpenFoodFactsRepository
+import com.example.nutrahelp.viewmodel.CaffeineViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -60,22 +64,18 @@ private val quickCaffeineDrinks = listOf(
     "Dark chocolate (1oz)" to 12
 )
 
-private data class CaffeineEntry(
-    val id: Long = System.nanoTime(),
-    val drinkName: String,
-    val caffeineMg: Int,
-    val time: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CaffeineTrackerScreen(onBack: () -> Unit) {
+fun CaffeineTrackerScreen(onBack: () -> Unit, vm: CaffeineViewModel = viewModel()) {
+    val todayStr = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
+
     var dailyLimit by remember { mutableIntStateOf(400) }
     var limitInput by remember { mutableStateOf("400") }
     var customDrink by remember { mutableStateOf("") }
     var customMg by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<CaffeineEntry>()) }
 
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
@@ -89,7 +89,7 @@ fun CaffeineTrackerScreen(onBack: () -> Unit) {
 
     fun logDrink(name: String, mg: Int) {
         val time = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
-        entries = (listOf(CaffeineEntry(drinkName = name, caffeineMg = mg, time = time)) + entries).sortedByDescending { it.id }
+        vm.insert(CaffeineEntryEntity(date = todayStr, drinkName = name, caffeineMg = mg, time = time))
     }
 
     Scaffold(
@@ -329,7 +329,7 @@ fun CaffeineTrackerScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Today's Log", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Reset") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Reset") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
@@ -356,7 +356,7 @@ fun CaffeineTrackerScreen(onBack: () -> Unit) {
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.primary
                             )
-                            IconButton(onClick = { entries = entries.filter { it.id != entry.id } }) {
+                            IconButton(onClick = { vm.delete(entry) }) {
                                 Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
                             }
                         }

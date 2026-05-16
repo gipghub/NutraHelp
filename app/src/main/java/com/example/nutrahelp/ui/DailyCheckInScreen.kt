@@ -27,6 +27,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -36,6 +37,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.CheckInEntryEntity
+import com.example.nutrahelp.viewmodel.CheckInViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -45,18 +49,8 @@ private val ciEnergyLabels = listOf("Exhausted", "Low", "Moderate", "Good", "Ene
 private val ciHungerLabels = listOf("Very Hungry", "Hungry", "Neutral", "Satisfied", "Not Hungry")
 private val ciSleepLabels = listOf("Poor", "Fair", "Good", "Great", "Excellent")
 
-private data class CheckInEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val time: String,
-    val mood: Int,
-    val energy: Int,
-    val hunger: Int,
-    val sleep: Int,
-    val notes: String
-)
-
-private fun CheckInEntry.overallScore(): Float = (mood + energy + hunger + sleep) / 4f + 1f
+private fun overallScore(mood: Int, energy: Int, hunger: Int, sleep: Int): Float =
+    (mood + energy + hunger + sleep) / 4f + 1f
 
 private fun overallLabel(score: Float): String = when {
     score < 2f -> "Tough day"
@@ -68,15 +62,16 @@ private fun overallLabel(score: Float): String = when {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DailyCheckInScreen(onBack: () -> Unit) {
+fun DailyCheckInScreen(onBack: () -> Unit, vm: CheckInViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var mood by remember { mutableIntStateOf(2) }
     var energy by remember { mutableIntStateOf(2) }
     var hunger by remember { mutableIntStateOf(2) }
     var sleep by remember { mutableIntStateOf(2) }
     var notes by remember { mutableStateOf("") }
-    var entries by remember { mutableStateOf(listOf<CheckInEntry>()) }
 
     val latestEntry = entries.firstOrNull()
 
@@ -119,7 +114,7 @@ fun DailyCheckInScreen(onBack: () -> Unit) {
         ) {
             if (latestEntry != null) {
                 item {
-                    val score = latestEntry.overallScore()
+                    val score = overallScore(latestEntry.mood, latestEntry.energy, latestEntry.hunger, latestEntry.sleep)
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(
                             modifier = Modifier.padding(16.dp),
@@ -189,17 +184,15 @@ fun DailyCheckInScreen(onBack: () -> Unit) {
                         Button(
                             onClick = {
                                 val time = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
-                                entries = listOf(
-                                    CheckInEntry(
-                                        date = todayStr,
-                                        time = time,
-                                        mood = mood,
-                                        energy = energy,
-                                        hunger = hunger,
-                                        sleep = sleep,
-                                        notes = notes.trim()
-                                    )
-                                ) + entries
+                                vm.insert(CheckInEntryEntity(
+                                    date = todayStr,
+                                    time = time,
+                                    mood = mood,
+                                    energy = energy,
+                                    hunger = hunger,
+                                    sleep = sleep,
+                                    notes = notes.trim()
+                                ))
                                 mood = 2; energy = 2; hunger = 2; sleep = 2; notes = ""
                             },
                             modifier = Modifier.fillMaxWidth()
@@ -216,12 +209,12 @@ fun DailyCheckInScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("History", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Reset") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Reset") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->
-                    val score = entry.overallScore()
+                    val score = overallScore(entry.mood, entry.energy, entry.hunger, entry.sleep)
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Row(

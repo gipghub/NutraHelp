@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -41,8 +42,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nutrahelp.data.FoodSearchResult
 import com.example.nutrahelp.data.OpenFoodFactsRepository
+import com.example.nutrahelp.data.ProteinEntryEntity
+import com.example.nutrahelp.viewmodel.ProteinViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.launch
 
 private val quickProteinFoods = listOf(
@@ -58,20 +65,17 @@ private val quickProteinFoods = listOf(
     "Edamame (½ cup)" to 8f
 )
 
-private data class ProteinEntry(
-    val id: Long = System.nanoTime(),
-    val foodName: String,
-    val proteinG: Float
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProteinSourceLogScreen(onBack: () -> Unit) {
+fun ProteinSourceLogScreen(onBack: () -> Unit, vm: ProteinViewModel = viewModel()) {
+    val todayStr = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
+
     var dailyGoal by remember { mutableFloatStateOf(120f) }
     var goalInput by remember { mutableStateOf("120") }
     var customFood by remember { mutableStateOf("") }
     var customProtein by remember { mutableStateOf("") }
-    var entries by remember { mutableStateOf(listOf<ProteinEntry>()) }
 
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
@@ -84,7 +88,7 @@ fun ProteinSourceLogScreen(onBack: () -> Unit) {
     val goalReached = totalProtein >= dailyGoal
 
     fun logFood(name: String, protein: Float) {
-        entries = (listOf(ProteinEntry(foodName = name, proteinG = protein)) + entries).sortedByDescending { it.id }
+        vm.insert(ProteinEntryEntity(date = todayStr, foodName = name, proteinG = protein))
     }
 
     Scaffold(
@@ -293,7 +297,7 @@ fun ProteinSourceLogScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Today's Log", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Reset") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Reset") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
@@ -306,7 +310,7 @@ fun ProteinSourceLogScreen(onBack: () -> Unit) {
                         ) {
                             Text(entry.foodName, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                             Text("+%.0fg".format(entry.proteinG), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-                            IconButton(onClick = { entries = entries.filter { it.id != entry.id } }) {
+                            IconButton(onClick = { vm.delete(entry) }) {
                                 Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
                             }
                         }

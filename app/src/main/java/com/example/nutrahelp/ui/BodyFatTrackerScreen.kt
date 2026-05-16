@@ -28,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,18 +38,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.BodyFatEntryEntity
+import com.example.nutrahelp.viewmodel.BodyFatViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 private val bfMethods = listOf("Smart Scale", "Calipers", "DEXA Scan", "Navy Method", "Other")
-
-private data class BodyFatEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val bodyFatPercent: Float,
-    val method: String
-)
 
 private fun bfCategory(percent: Float, isMale: Boolean): String =
     if (isMale) {
@@ -71,15 +68,16 @@ private fun bfCategory(percent: Float, isMale: Boolean): String =
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun BodyFatTrackerScreen(onBack: () -> Unit) {
+fun BodyFatTrackerScreen(onBack: () -> Unit, vm: BodyFatViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var dateInput by remember { mutableStateOf(todayStr) }
     var bfInput by remember { mutableStateOf("") }
     var selectedMethod by remember { mutableStateOf(bfMethods[0]) }
     var isMale by remember { mutableStateOf(true) }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<BodyFatEntry>()) }
 
     val latest = entries.firstOrNull()
     val previous = entries.getOrNull(1)
@@ -217,9 +215,7 @@ fun BodyFatTrackerScreen(onBack: () -> Unit) {
                                 if (bf == null || bf < 1f || bf > 70f) {
                                     formError = true
                                 } else {
-                                    entries = (listOf(
-                                        BodyFatEntry(date = dateInput.trim(), bodyFatPercent = bf, method = selectedMethod)
-                                    ) + entries).sortedByDescending { it.id }
+                                    vm.insert(BodyFatEntryEntity(date = dateInput.trim(), bodyFatPercent = bf, method = selectedMethod))
                                     bfInput = ""
                                     dateInput = SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date())
                                     formError = false
@@ -239,7 +235,7 @@ fun BodyFatTrackerScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("History", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Reset") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Reset") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }

@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,8 +41,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.AlcoholEntryEntity
 import com.example.nutrahelp.data.FoodSearchResult
 import com.example.nutrahelp.data.OpenFoodFactsRepository
+import com.example.nutrahelp.viewmodel.AlcoholViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.launch
 
 private val quickAlcoholDrinks = listOf(
@@ -53,19 +60,16 @@ private val quickAlcoholDrinks = listOf(
     "Hard Seltzer" to 100
 )
 
-private data class AlcoholEntry(
-    val id: Long = System.nanoTime(),
-    val drinkName: String,
-    val calories: Int
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlcoholTrackerScreen(onBack: () -> Unit) {
+fun AlcoholTrackerScreen(onBack: () -> Unit, vm: AlcoholViewModel = viewModel()) {
+    val todayStr = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
+
     var customDrink by remember { mutableStateOf("") }
     var customCalories by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<AlcoholEntry>()) }
 
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
@@ -77,7 +81,7 @@ fun AlcoholTrackerScreen(onBack: () -> Unit) {
     val totalDrinks = entries.size
 
     fun logDrink(name: String, cal: Int) {
-        entries = (listOf(AlcoholEntry(drinkName = name, calories = cal)) + entries).sortedByDescending { it.id }
+        vm.insert(AlcoholEntryEntity(date = todayStr, drinkName = name, calories = cal))
     }
 
     Scaffold(
@@ -289,7 +293,7 @@ fun AlcoholTrackerScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Today's Log", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Reset") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Reset") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
@@ -309,7 +313,7 @@ fun AlcoholTrackerScreen(onBack: () -> Unit) {
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.primary
                             )
-                            IconButton(onClick = { entries = entries.filter { it.id != entry.id } }) {
+                            IconButton(onClick = { vm.delete(entry) }) {
                                 Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
                             }
                         }

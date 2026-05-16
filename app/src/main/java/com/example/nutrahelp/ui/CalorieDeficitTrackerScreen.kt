@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -41,19 +42,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.CalorieEntryEntity
 import com.example.nutrahelp.data.FoodSearchResult
 import com.example.nutrahelp.data.OpenFoodFactsRepository
+import com.example.nutrahelp.viewmodel.CalorieViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.launch
-
-private data class CalorieEntry(
-    val id: Long = System.nanoTime(),
-    val foodName: String,
-    val calories: Int
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalorieDeficitTrackerScreen(onBack: () -> Unit) {
+fun CalorieDeficitTrackerScreen(onBack: () -> Unit, vm: CalorieViewModel = viewModel()) {
+    val todayStr = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
+
     var tdee by remember { mutableIntStateOf(2000) }
     var tdeeInput by remember { mutableStateOf("2000") }
     var deficitTarget by remember { mutableIntStateOf(500) }
@@ -62,7 +67,6 @@ fun CalorieDeficitTrackerScreen(onBack: () -> Unit) {
     var foodName by remember { mutableStateOf("") }
     var calorieInput by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<CalorieEntry>()) }
 
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
@@ -238,7 +242,7 @@ fun CalorieDeficitTrackerScreen(onBack: () -> Unit) {
                                 if (foodName.isBlank() || cal == null || cal <= 0) {
                                     formError = true
                                 } else {
-                                    entries = (listOf(CalorieEntry(foodName = foodName.trim(), calories = cal)) + entries).sortedByDescending { it.id }
+                                    vm.insert(CalorieEntryEntity(date = todayStr, foodName = foodName.trim(), calories = cal))
                                     foodName = ""; calorieInput = ""; formError = false
                                 }
                             },
@@ -289,7 +293,7 @@ fun CalorieDeficitTrackerScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Today's Food Log", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Reset") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Reset") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
@@ -302,7 +306,7 @@ fun CalorieDeficitTrackerScreen(onBack: () -> Unit) {
                         ) {
                             Text(entry.foodName, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                             Text("${entry.calories} cal", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-                            IconButton(onClick = { entries = entries.filter { it.id != entry.id } }) {
+                            IconButton(onClick = { vm.delete(entry) }) {
                                 Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
                             }
                         }

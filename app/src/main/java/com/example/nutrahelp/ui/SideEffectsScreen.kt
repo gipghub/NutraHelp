@@ -25,11 +25,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +40,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.SideEffectEntryEntity
+import com.example.nutrahelp.viewmodel.SideEffectViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -49,25 +54,18 @@ private val sideEffectOptions = listOf(
 
 private val severityLabels = mapOf(1 to "Mild", 2 to "Moderate", 3 to "Noticeable", 4 to "Severe", 5 to "Extreme")
 
-private data class SideEffectEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val effect: String,
-    val severity: Int,
-    val notes: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun SideEffectsScreen(onBack: () -> Unit) {
+fun SideEffectsScreen(onBack: () -> Unit, vm: SideEffectViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var date by remember { mutableStateOf(todayStr) }
     var effect by remember { mutableStateOf(sideEffectOptions[0]) }
     var effectExpanded by remember { mutableStateOf(false) }
     var severity by remember { mutableIntStateOf(1) }
     var notes by remember { mutableStateOf("") }
-    var entries by remember { mutableStateOf(listOf<SideEffectEntry>()) }
     var formError by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -165,14 +163,12 @@ fun SideEffectsScreen(onBack: () -> Unit) {
                                 if (date.isBlank()) {
                                     formError = true
                                 } else {
-                                    entries = (listOf(
-                                        SideEffectEntry(
-                                            date = date,
-                                            effect = effect,
-                                            severity = severity,
-                                            notes = notes.trim()
-                                        )
-                                    ) + entries).sortedByDescending { it.id }
+                                    vm.insert(SideEffectEntryEntity(
+                                        date = date,
+                                        effect = effect,
+                                        severity = severity,
+                                        notes = notes.trim()
+                                    ))
                                     date = todayStr
                                     severity = 1
                                     notes = ""
@@ -189,7 +185,14 @@ fun SideEffectsScreen(onBack: () -> Unit) {
 
             if (entries.isNotEmpty()) {
                 item {
-                    Text("History", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("History", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->

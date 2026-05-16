@@ -21,6 +21,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -29,6 +30,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,19 +41,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.StressEntryEntity
+import com.example.nutrahelp.viewmodel.StressViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 private val stressTriggers = listOf("Work", "Health", "Family", "Sleep", "Food", "Exercise", "Social", "Financial")
-
-private data class StressEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val level: Int,
-    val triggers: Set<String>,
-    val notes: String
-)
 
 private fun stressLabel(level: Int) = when (level) {
     in 1..3 -> "Low"
@@ -62,14 +59,15 @@ private fun stressLabel(level: Int) = when (level) {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun StressTrackerScreen(onBack: () -> Unit) {
+fun StressTrackerScreen(onBack: () -> Unit, vm: StressViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var date by remember { mutableStateOf(todayStr) }
     var level by remember { mutableIntStateOf(4) }
     var selectedTriggers by remember { mutableStateOf(setOf<String>()) }
     var notes by remember { mutableStateOf("") }
-    var entries by remember { mutableStateOf(listOf<StressEntry>()) }
 
     val levels = (1..10).toList()
 
@@ -162,14 +160,14 @@ fun StressTrackerScreen(onBack: () -> Unit) {
 
                         Button(
                             onClick = {
-                                entries = listOf(
-                                    StressEntry(
+                                vm.insert(
+                                    StressEntryEntity(
                                         date = date.ifBlank { todayStr },
                                         level = level,
-                                        triggers = selectedTriggers,
+                                        triggers = selectedTriggers.joinToString(","),
                                         notes = notes.trim()
                                     )
-                                ) + entries
+                                )
                                 level = 4; selectedTriggers = setOf(); notes = ""; date = todayStr
                             },
                             modifier = Modifier.fillMaxWidth()
@@ -180,7 +178,14 @@ fun StressTrackerScreen(onBack: () -> Unit) {
 
             if (entries.isNotEmpty()) {
                 item {
-                    Text("History", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("History", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->
@@ -209,9 +214,10 @@ fun StressTrackerScreen(onBack: () -> Unit) {
                                     fontWeight = FontWeight.SemiBold
                                 )
                             }
-                            if (entry.triggers.isNotEmpty()) {
+                            val triggersSet = entry.triggers.split(",").filter { it.isNotBlank() }
+                            if (triggersSet.isNotEmpty()) {
                                 Text(
-                                    entry.triggers.joinToString(", "),
+                                    triggersSet.joinToString(", "),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,8 +43,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nutrahelp.data.FoodSearchResult
 import com.example.nutrahelp.data.OpenFoodFactsRepository
+import com.example.nutrahelp.data.SodiumEntryEntity
+import com.example.nutrahelp.viewmodel.SodiumViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.launch
 
 private val quickSodiumFoods = listOf(
@@ -57,21 +64,18 @@ private val quickSodiumFoods = listOf(
     "Bread (1 slice)" to 150
 )
 
-private data class SodiumEntry(
-    val id: Long = System.nanoTime(),
-    val foodName: String,
-    val sodiumMg: Int
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SodiumTrackerScreen(onBack: () -> Unit) {
+fun SodiumTrackerScreen(onBack: () -> Unit, vm: SodiumViewModel = viewModel()) {
+    val todayStr = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
+
     var dailyGoal by remember { mutableIntStateOf(2300) }
     var goalInput by remember { mutableStateOf("2300") }
     var customFood by remember { mutableStateOf("") }
     var customSodium by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<SodiumEntry>()) }
 
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
@@ -84,7 +88,7 @@ fun SodiumTrackerScreen(onBack: () -> Unit) {
     val overLimit = totalSodium > dailyGoal
 
     fun logFood(name: String, mg: Int) {
-        entries = (listOf(SodiumEntry(foodName = name, sodiumMg = mg)) + entries).sortedByDescending { it.id }
+        vm.insert(SodiumEntryEntity(date = todayStr, foodName = name, sodiumMg = mg))
     }
 
     Scaffold(
@@ -325,7 +329,7 @@ fun SodiumTrackerScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Today's Log", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Reset") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Reset") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
@@ -345,7 +349,7 @@ fun SodiumTrackerScreen(onBack: () -> Unit) {
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.primary
                             )
-                            IconButton(onClick = { entries = entries.filter { it.id != entry.id } }) {
+                            IconButton(onClick = { vm.delete(entry) }) {
                                 Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
                             }
                         }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,18 +21,24 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.JournalEntryEntity
+import com.example.nutrahelp.viewmodel.JournalViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -45,23 +52,16 @@ private val moodColors = mapOf(
     "Terrible" to "Very hard day"
 )
 
-private data class JournalEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val mood: String,
-    val energy: Int,
-    val note: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun DailyJournalScreen(onBack: () -> Unit) {
+fun DailyJournalScreen(onBack: () -> Unit, vm: JournalViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var mood by remember { mutableStateOf(moodOptions[1]) }
     var energy by remember { mutableIntStateOf(3) }
     var note by remember { mutableStateOf("") }
-    var entries by remember { mutableStateOf(listOf<JournalEntry>()) }
     var saved by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -138,14 +138,12 @@ fun DailyJournalScreen(onBack: () -> Unit) {
 
                         Button(
                             onClick = {
-                                entries = listOf(
-                                    JournalEntry(
-                                        date = todayStr,
-                                        mood = mood,
-                                        energy = energy,
-                                        note = note.trim()
-                                    )
-                                ) + entries
+                                vm.insert(JournalEntryEntity(
+                                    date = todayStr,
+                                    mood = mood,
+                                    energy = energy,
+                                    note = note.trim()
+                                ))
                                 mood = moodOptions[1]
                                 energy = 3
                                 note = ""
@@ -161,7 +159,14 @@ fun DailyJournalScreen(onBack: () -> Unit) {
 
             if (entries.isNotEmpty()) {
                 item {
-                    Text("Past Entries", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Past Entries", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->

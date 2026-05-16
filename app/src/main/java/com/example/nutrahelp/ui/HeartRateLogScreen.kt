@@ -23,11 +23,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,19 +40,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.HeartRateEntryEntity
+import com.example.nutrahelp.viewmodel.HeartRateViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 private val hrContexts = listOf("Morning (resting)", "Evening (resting)", "Pre-exercise", "Post-exercise", "Relaxed", "Other")
-
-private data class HeartRateEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val bpm: Int,
-    val context: String,
-    val notes: String
-)
 
 private fun hrCategory(bpm: Int) = when {
     bpm < 40 -> Triple("Very Low", "Consult doctor", "error")
@@ -62,8 +59,10 @@ private fun hrCategory(bpm: Int) = when {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HeartRateLogScreen(onBack: () -> Unit) {
+fun HeartRateLogScreen(onBack: () -> Unit, vm: HeartRateViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var date by remember { mutableStateOf(todayStr) }
     var bpmInput by remember { mutableStateOf("") }
@@ -71,7 +70,6 @@ fun HeartRateLogScreen(onBack: () -> Unit) {
     var contextExpanded by remember { mutableStateOf(false) }
     var notes by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<HeartRateEntry>()) }
 
     Scaffold(
         topBar = {
@@ -177,7 +175,7 @@ fun HeartRateLogScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || bpm == null || bpm <= 0) {
                                     formError = true
                                 } else {
-                                    entries = listOf(HeartRateEntry(date = date, bpm = bpm, context = context, notes = notes.trim())) + entries
+                                    vm.insert(HeartRateEntryEntity(date = date, bpm = bpm, context = context, notes = notes.trim()))
                                     bpmInput = ""; notes = ""; date = todayStr; formError = false
                                 }
                             },
@@ -189,7 +187,14 @@ fun HeartRateLogScreen(onBack: () -> Unit) {
 
             if (entries.isNotEmpty()) {
                 item {
-                    Text("History", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("History", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->

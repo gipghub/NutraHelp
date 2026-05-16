@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -44,8 +45,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nutrahelp.data.FoodSearchResult
 import com.example.nutrahelp.data.OpenFoodFactsRepository
+import com.example.nutrahelp.data.SensitivityEntryEntity
+import com.example.nutrahelp.viewmodel.SensitivityViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -54,19 +58,12 @@ import kotlinx.coroutines.launch
 private val symptomOptions = listOf("Nausea", "Bloating", "Cramping", "Diarrhea", "Heartburn", "Vomiting", "Headache", "Fatigue", "Skin reaction", "Other")
 private val severityLabels = listOf("Mild", "Moderate", "Severe", "Very Severe")
 
-private data class SensitivityEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val food: String,
-    val severity: Int,
-    val symptoms: Set<String>,
-    val notes: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun FoodSensitivityLogScreen(onBack: () -> Unit) {
+fun FoodSensitivityLogScreen(onBack: () -> Unit, vm: SensitivityViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var date by remember { mutableStateOf(todayStr) }
     var food by remember { mutableStateOf("") }
@@ -74,7 +71,6 @@ fun FoodSensitivityLogScreen(onBack: () -> Unit) {
     var selectedSymptoms by remember { mutableStateOf(setOf<String>()) }
     var notes by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<SensitivityEntry>()) }
 
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
@@ -237,12 +233,12 @@ fun FoodSensitivityLogScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || food.isBlank()) {
                                     formError = true
                                 } else {
-                                    entries = listOf(
-                                        SensitivityEntry(
+                                    vm.insert(
+                                        SensitivityEntryEntity(
                                             date = date, food = food.trim(), severity = severity,
-                                            symptoms = selectedSymptoms, notes = notes.trim()
+                                            symptoms = selectedSymptoms.joinToString(","), notes = notes.trim()
                                         )
-                                    ) + entries
+                                    )
                                     food = ""; severity = 0; selectedSymptoms = setOf(); notes = ""; date = todayStr
                                     searchQuery = ""; searchResults = emptyList(); formError = false
                                 }
@@ -255,7 +251,14 @@ fun FoodSensitivityLogScreen(onBack: () -> Unit) {
 
             if (entries.isNotEmpty()) {
                 item {
-                    Text("History", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("History", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->
@@ -283,9 +286,10 @@ fun FoodSensitivityLogScreen(onBack: () -> Unit) {
                                 )
                             }
                             Text(entry.food, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                            if (entry.symptoms.isNotEmpty()) {
+                            val symptomsSet = entry.symptoms.split(",").filter { it.isNotBlank() }
+                            if (symptomsSet.isNotEmpty()) {
                                 Text(
-                                    entry.symptoms.joinToString(", "),
+                                    symptomsSet.joinToString(", "),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

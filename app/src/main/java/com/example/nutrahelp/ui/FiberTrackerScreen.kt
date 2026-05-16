@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -41,15 +42,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.FiberEntryEntity
 import com.example.nutrahelp.data.FoodSearchResult
 import com.example.nutrahelp.data.OpenFoodFactsRepository
+import com.example.nutrahelp.viewmodel.FiberViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.launch
-
-private data class FiberEntry(
-    val id: Long = System.nanoTime(),
-    val foodName: String,
-    val fiberG: Float
-)
 
 private val quickAddFoods = listOf(
     "Avocado" to 5f,
@@ -64,12 +65,15 @@ private val quickAddFoods = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FiberTrackerScreen(onBack: () -> Unit) {
+fun FiberTrackerScreen(onBack: () -> Unit, vm: FiberViewModel = viewModel()) {
+    val todayStr = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
+
     var dailyGoal by remember { mutableFloatStateOf(30f) }
     var goalInput by remember { mutableStateOf("30") }
     var customFood by remember { mutableStateOf("") }
     var customFiber by remember { mutableStateOf("") }
-    var entries by remember { mutableStateOf(listOf<FiberEntry>()) }
 
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
@@ -82,7 +86,7 @@ fun FiberTrackerScreen(onBack: () -> Unit) {
     val goalReached = totalFiber >= dailyGoal
 
     fun logFood(name: String, fiber: Float) {
-        entries = (listOf(FiberEntry(foodName = name, fiberG = fiber)) + entries).sortedByDescending { it.id }
+        vm.insert(FiberEntryEntity(date = todayStr, foodName = name, fiberG = fiber))
     }
 
     Scaffold(
@@ -295,7 +299,7 @@ fun FiberTrackerScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Today's Log", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Reset") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Reset") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
@@ -308,7 +312,7 @@ fun FiberTrackerScreen(onBack: () -> Unit) {
                         ) {
                             Text(entry.foodName, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                             Text("+%.1fg".format(entry.fiberG), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-                            IconButton(onClick = { entries = entries.filter { it.id != entry.id } }) {
+                            IconButton(onClick = { vm.delete(entry) }) {
                                 Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
                             }
                         }

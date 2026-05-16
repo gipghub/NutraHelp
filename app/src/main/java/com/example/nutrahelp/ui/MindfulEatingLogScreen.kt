@@ -25,6 +25,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -33,6 +34,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +44,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.MindfulMealEntryEntity
+import com.example.nutrahelp.viewmodel.MindfulMealViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -51,21 +56,12 @@ private val distractionTags = listOf("Phone", "TV", "Work", "Reading", "Driving"
 private val hungerLabels = listOf("1", "2", "3", "4", "5")
 private val fullnessLabels = listOf("1", "2", "3", "4", "5")
 
-private data class MindfulMealEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val mealType: String,
-    val hungerBefore: Int,
-    val fullnessAfter: Int,
-    val eatingMins: String,
-    val distractions: Set<String>,
-    val notes: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun MindfulEatingLogScreen(onBack: () -> Unit) {
+fun MindfulEatingLogScreen(onBack: () -> Unit, vm: MindfulMealViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var date by remember { mutableStateOf(todayStr) }
     var mealType by remember { mutableStateOf(mealTypes[0]) }
@@ -75,7 +71,6 @@ fun MindfulEatingLogScreen(onBack: () -> Unit) {
     var eatingMins by remember { mutableStateOf("") }
     var distractions by remember { mutableStateOf(setOf<String>()) }
     var notes by remember { mutableStateOf("") }
-    var entries by remember { mutableStateOf(listOf<MindfulMealEntry>()) }
 
     Scaffold(
         topBar = {
@@ -190,17 +185,15 @@ fun MindfulEatingLogScreen(onBack: () -> Unit) {
 
                         Button(
                             onClick = {
-                                entries = listOf(
-                                    MindfulMealEntry(
-                                        date = date.ifBlank { todayStr },
-                                        mealType = mealType,
-                                        hungerBefore = hungerBefore,
-                                        fullnessAfter = fullnessAfter,
-                                        eatingMins = eatingMins.trim(),
-                                        distractions = distractions,
-                                        notes = notes.trim()
-                                    )
-                                ) + entries
+                                vm.insert(MindfulMealEntryEntity(
+                                    date = date.ifBlank { todayStr },
+                                    mealType = mealType,
+                                    hungerBefore = hungerBefore,
+                                    fullnessAfter = fullnessAfter,
+                                    eatingMins = eatingMins.trim(),
+                                    distractions = distractions.joinToString(","),
+                                    notes = notes.trim()
+                                ))
                                 hungerBefore = 2; fullnessAfter = 3; eatingMins = ""; distractions = setOf(); notes = ""; date = todayStr
                             },
                             modifier = Modifier.fillMaxWidth()
@@ -211,11 +204,19 @@ fun MindfulEatingLogScreen(onBack: () -> Unit) {
 
             if (entries.isNotEmpty()) {
                 item {
-                    Text("History", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("History", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->
-                    val mindful = entry.fullnessAfter in 2..3 && entry.hungerBefore in 1..3 && "None" in entry.distractions
+                    val entryDistractions = entry.distractions.split(",").filter { it.isNotBlank() }.toSet()
+                    val mindful = entry.fullnessAfter in 2..3 && entry.hungerBefore in 1..3 && "None" in entryDistractions
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Row(
@@ -235,8 +236,8 @@ fun MindfulEatingLogScreen(onBack: () -> Unit) {
                                     Text("${entry.eatingMins} min", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
-                            if (entry.distractions.isNotEmpty() && "None" !in entry.distractions) {
-                                Text("Distractions: ${entry.distractions.joinToString(", ")}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            if (entryDistractions.isNotEmpty() && "None" !in entryDistractions) {
+                                Text("Distractions: ${entryDistractions.joinToString(", ")}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             if (entry.notes.isNotBlank()) {
                                 Text(entry.notes, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

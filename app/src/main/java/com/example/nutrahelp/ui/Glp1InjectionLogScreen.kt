@@ -22,11 +22,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +37,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.Glp1EntryEntity
+import com.example.nutrahelp.viewmodel.Glp1ViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -46,19 +51,12 @@ private val injectionSites = listOf(
     "Upper Arm – Left", "Upper Arm – Right"
 )
 
-private data class Glp1Entry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val medication: String,
-    val dose: String,
-    val site: String,
-    val notes: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Glp1InjectionLogScreen(onBack: () -> Unit) {
+fun Glp1InjectionLogScreen(onBack: () -> Unit, vm: Glp1ViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var date by remember { mutableStateOf(todayStr) }
     var medication by remember { mutableStateOf(glp1Medications[0]) }
@@ -68,7 +66,6 @@ fun Glp1InjectionLogScreen(onBack: () -> Unit) {
     var siteExpanded by remember { mutableStateOf(false) }
     var notes by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<Glp1Entry>()) }
 
     val lastSite = entries.firstOrNull()?.site
 
@@ -194,9 +191,13 @@ fun Glp1InjectionLogScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || dose.isBlank()) {
                                     formError = true
                                 } else {
-                                    entries = listOf(
-                                        Glp1Entry(date = date, medication = medication, dose = dose, site = site, notes = notes.trim())
-                                    ) + entries
+                                    vm.insert(Glp1EntryEntity(
+                                        date = date,
+                                        medication = medication,
+                                        dose = dose,
+                                        site = site,
+                                        notes = notes.trim()
+                                    ))
                                     dose = ""; notes = ""; date = todayStr; formError = false
                                 }
                             },
@@ -208,7 +209,14 @@ fun Glp1InjectionLogScreen(onBack: () -> Unit) {
 
             if (entries.isNotEmpty()) {
                 item {
-                    Text("History", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("History", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->

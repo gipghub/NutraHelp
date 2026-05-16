@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -43,8 +44,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.EnergyEntryEntity
 import com.example.nutrahelp.data.FoodSearchResult
 import com.example.nutrahelp.data.OpenFoodFactsRepository
+import com.example.nutrahelp.viewmodel.EnergyViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -60,24 +64,17 @@ private fun energyLabel(level: Int): String = when (level) {
     else -> "High Energy"
 }
 
-private data class EnergyEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val timeOfDay: String,
-    val energyLevel: Int,
-    val notes: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun EnergyLevelLogScreen(onBack: () -> Unit) {
+fun EnergyLevelLogScreen(onBack: () -> Unit, vm: EnergyViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var selectedTimeOfDay by remember { mutableStateOf(timeOfDayOptions[0]) }
     var energyLevel by remember { mutableIntStateOf(5) }
     var notes by remember { mutableStateOf("") }
     var foodTrigger by remember { mutableStateOf("") }
-    var entries by remember { mutableStateOf(listOf<EnergyEntry>()) }
 
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
@@ -267,14 +264,14 @@ fun EnergyLevelLogScreen(onBack: () -> Unit) {
                                     foodTrigger.trim().takeIf { it.isNotBlank() }?.let { "Food: $it" },
                                     notes.trim().takeIf { it.isNotBlank() }
                                 ).joinToString(" · ")
-                                entries = (listOf(
-                                    EnergyEntry(
+                                vm.insert(
+                                    EnergyEntryEntity(
                                         date = todayStr,
                                         timeOfDay = selectedTimeOfDay,
                                         energyLevel = energyLevel,
                                         notes = combinedNotes
                                     )
-                                ) + entries).sortedByDescending { it.id }
+                                )
                                 notes = ""
                                 energyLevel = 5
                                 foodTrigger = ""
@@ -295,7 +292,7 @@ fun EnergyLevelLogScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("History", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Reset") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Reset") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }

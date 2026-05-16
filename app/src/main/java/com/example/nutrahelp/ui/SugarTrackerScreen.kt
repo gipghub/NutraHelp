@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,8 +43,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nutrahelp.data.FoodSearchResult
 import com.example.nutrahelp.data.OpenFoodFactsRepository
+import com.example.nutrahelp.data.SugarEntryEntity
+import com.example.nutrahelp.viewmodel.SugarViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.launch
 
 private val quickSugarFoods = listOf(
@@ -57,21 +64,18 @@ private val quickSugarFoods = listOf(
     "Ketchup (2 tbsp)" to 8
 )
 
-private data class SugarEntry(
-    val id: Long = System.nanoTime(),
-    val foodName: String,
-    val sugarG: Int
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SugarTrackerScreen(onBack: () -> Unit) {
+fun SugarTrackerScreen(onBack: () -> Unit, vm: SugarViewModel = viewModel()) {
+    val todayStr = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
+
     var dailyGoal by remember { mutableIntStateOf(25) }
     var goalInput by remember { mutableStateOf("25") }
     var customFood by remember { mutableStateOf("") }
     var customSugar by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<SugarEntry>()) }
 
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
@@ -84,7 +88,7 @@ fun SugarTrackerScreen(onBack: () -> Unit) {
     val overLimit = totalSugar > dailyGoal
 
     fun logFood(name: String, g: Int) {
-        entries = (listOf(SugarEntry(foodName = name, sugarG = g)) + entries).sortedByDescending { it.id }
+        vm.insert(SugarEntryEntity(date = todayStr, foodName = name, sugarG = g))
     }
 
     Scaffold(
@@ -325,7 +329,7 @@ fun SugarTrackerScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Today's Log", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Reset") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Reset") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
@@ -345,7 +349,7 @@ fun SugarTrackerScreen(onBack: () -> Unit) {
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.primary
                             )
-                            IconButton(onClick = { entries = entries.filter { it.id != entry.id } }) {
+                            IconButton(onClick = { vm.delete(entry) }) {
                                 Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
                             }
                         }
