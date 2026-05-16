@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -40,8 +41,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nutrahelp.data.FoodSearchResult
 import com.example.nutrahelp.data.OpenFoodFactsRepository
+import com.example.nutrahelp.data.SleepEntryEntity
+import com.example.nutrahelp.viewmodel.SleepViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -49,19 +53,10 @@ import kotlinx.coroutines.launch
 
 private val qualityLabels = listOf("Poor", "Fair", "Good", "Great", "Excellent")
 
-private data class SleepEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val bedtime: String,
-    val wakeTime: String,
-    val hoursSlept: Float,
-    val quality: Int,
-    val notes: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SleepTrackerScreen(onBack: () -> Unit) {
+fun SleepTrackerScreen(onBack: () -> Unit, vm: SleepViewModel = viewModel()) {
+    val entries by vm.entries.collectAsState()
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
 
     var date by remember { mutableStateOf(todayStr) }
@@ -72,7 +67,6 @@ fun SleepTrackerScreen(onBack: () -> Unit) {
     var notes by remember { mutableStateOf("") }
     var eveningFood by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<SleepEntry>()) }
 
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
@@ -262,16 +256,14 @@ fun SleepTrackerScreen(onBack: () -> Unit) {
                                         eveningFood.trim().takeIf { it.isNotBlank() }?.let { "Evening food: $it" },
                                         notes.trim().takeIf { it.isNotBlank() }
                                     ).joinToString(" · ")
-                                    entries = (listOf(
-                                        SleepEntry(
-                                            date = date,
-                                            bedtime = bedtime,
-                                            wakeTime = wakeTime,
-                                            hoursSlept = h,
-                                            quality = quality,
-                                            notes = combinedNotes
-                                        )
-                                    ) + entries).sortedByDescending { it.id }
+                                    vm.insert(SleepEntryEntity(
+                                        date = date,
+                                        bedtime = bedtime,
+                                        wakeTime = wakeTime,
+                                        hoursSlept = h,
+                                        quality = quality,
+                                        notes = combinedNotes
+                                    ))
                                     bedtime = ""
                                     wakeTime = ""
                                     hoursSlept = ""
@@ -294,7 +286,14 @@ fun SleepTrackerScreen(onBack: () -> Unit) {
 
             if (entries.isNotEmpty()) {
                 item {
-                    Text("History", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("History", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->
