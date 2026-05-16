@@ -97,3 +97,323 @@ data class CravingEntryEntity(
     val outcome: String,
     val notes: String,
 )
+
+@Entity(tableName = "mood_entries")
+data class MoodEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val time: String,
+    val moodLevel: Int,
+    val emotions: String, // comma-separated
+    val notes: String,
+)
+
+@Entity(tableName = "energy_entries")
+data class EnergyEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val timeOfDay: String,
+    val energyLevel: Int,
+    val notes: String,
+)
+
+@Entity(tableName = "gut_entries")
+data class GutEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val timeOfDay: String,
+    val symptoms: String, // comma-separated
+    val severity: Int,
+    val notes: String,
+)
+
+@Entity(tableName = "inflammation_entries")
+data class InflammationEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val symptoms: String, // comma-separated
+    val severity: Int,
+    val notes: String,
+)
+
+@Entity(tableName = "sensitivity_entries")
+data class SensitivityEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val food: String,
+    val severity: Int,
+    val symptoms: String, // comma-separated
+    val notes: String,
+)
+
+@Entity(tableName = "blood_sugar_entries")
+data class BloodSugarEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val readingType: String,
+    val valueMgDl: Float,
+    val notes: String,
+)
+
+@Entity(tableName = "bp_entries")
+data class BpEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val systolic: Int,
+    val diastolic: Int,
+    val pulse: Int, // -1 if not entered
+    val notes: String,
+)
+
+@Entity(tableName = "stress_entries")
+data class StressEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val level: Int,
+    val triggers: String, // comma-separated
+    val notes: String,
+)
+
+@Entity(tableName = "exercise_entries")
+data class ExerciseEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val type: String,
+    val durationMins: Int,
+    val intensity: String,
+    val notes: String,
+)
+
+@Entity(tableName = "measurement_entries")
+data class MeasurementEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val unit: String,
+    val waist: Float,      // -1f if not entered
+    val hips: Float,       // -1f if not entered
+    val chest: Float,      // -1f if not entered
+    val leftArm: Float,    // -1f if not entered
+    val rightArm: Float,   // -1f if not entered
+    val leftThigh: Float,  // -1f if not entered
+    val rightThigh: Float, // -1f if not entered
+)
+
+@Entity(tableName = "cholesterol_entries")
+data class CholesterolEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val total: Float,        // -1f if not entered
+    val hdl: Float,          // -1f if not entered
+    val ldl: Float,          // -1f if not entered
+    val triglycerides: Float,// -1f if not entered
+    val notes: String,
+)
+
+@Entity(tableName = "heart_rate_entries")
+data class HeartRateEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val bpm: Int,
+    val context: String,
+    val notes: String,
+)
+
+@Entity(tableName = "a1c_entries")
+data class A1CEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val value: Float,
+    val notes: String,
+)
+
+@Entity(tableName = "step_entries")
+data class StepEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val steps: Int,
+    val goalMet: Boolean,
+)
+
+@Entity(tableName = "body_fat_entries")
+data class BodyFatEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val bodyFatPercent: Float,
+    val method: String,
+)
+
+@Entity(tableName = "fiber_entries")
+data class FiberEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val foodName: String,
+    val fiberG: Float,
+)
+
+@Entity(tableName = "alcohol_entries")
+data class AlcoholEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val drinkName: String,
+    val calories: Int,
+)
+
+@Entity(tableName = "caffeine_entries")
+data class CaffeineEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val drinkName: String,
+    val caffeineMg: Int,
+    val time: String,
+)
+
+@Entity(tableName = "sugar_entries")
+data class SugarEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val foodName: String,
+    val sugarG: Int,
+)
+
+@Entity(tableName = "sodium_entries")
+data class SodiumEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val foodName: String,
+    val sodiumMg: Int,
+)
+
+@Entity(tableName = "macro_entries")
+data class MacroEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val foodName: String,
+    val carbsG: Float,
+    val proteinG: Float,
+    val fatG: Float,
+)
+
+@Entity(tableName = "protein_entries")
+data class ProteinEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val foodName: String,
+    val proteinG: Float,
+)
+
+@Entity(tableName = "calorie_entries")
+data class CalorieEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val foodName: String,
+    val calories: Int,
+)
+
+@Entity(tableName = "nutrient_entries")
+data class NutrientEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val nutrientName: String,
+    val amount: Float,
+    val unit: String,
+    val source: String,
+)
+
+@Entity(tableName = "hunger_entries")
+data class HungerEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val time: String,
+    val mealName: String,
+    val hungerBefore: Int,
+    val fullnessAfter: Int,
+)
+
+@Entity(tableName = "meal_timing_entries")
+data class MealTimingEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val mealType: String,
+    val mealName: String,
+    val time: String,
+    val minutesSinceMidnight: Int,
+)
+
+@Entity(tableName = "mindful_meal_entries")
+data class MindfulMealEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val mealType: String,
+    val hungerBefore: Int,
+    val fullnessAfter: Int,
+    val eatingMins: String,
+    val distractions: String, // comma-separated
+    val notes: String,
+)
+
+@Entity(tableName = "milestone_entries")
+data class MilestoneEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val category: String,
+    val title: String,
+    val description: String,
+)
+
+@Entity(tableName = "nsv_entries")
+data class NsvEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val category: String,
+    val description: String,
+)
+
+@Entity(tableName = "side_effect_entries")
+data class SideEffectEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val effect: String,
+    val severity: Int,
+    val notes: String,
+)
+
+@Entity(tableName = "lab_entries")
+data class LabEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val labTypeName: String,
+    val labTypeUnit: String,
+    val labTypeReference: String,
+    val value: String,
+    val notes: String,
+)
+
+@Entity(tableName = "journal_entries")
+data class JournalEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val mood: String,
+    val energy: Int,
+    val note: String,
+)
+
+@Entity(tableName = "check_in_entries")
+data class CheckInEntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val time: String,
+    val mood: Int,
+    val energy: Int,
+    val hunger: Int,
+    val sleep: Int,
+    val notes: String,
+)
+
+@Entity(tableName = "glp1_entries")
+data class Glp1EntryEntity(
+    @PrimaryKey val id: Long = System.nanoTime(),
+    val date: String,
+    val medication: String,
+    val dose: String,
+    val site: String,
+    val notes: String,
+)
