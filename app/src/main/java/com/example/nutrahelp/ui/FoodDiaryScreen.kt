@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -79,6 +80,9 @@ fun FoodDiaryScreen(onBack: () -> Unit, vm: DiaryViewModel = viewModel()) {
     val dateOffset by vm.dateOffset.collectAsState()
     val todayEntries by vm.entries.collectAsState()
     var showForm by remember { mutableStateOf(false) }
+    var showScanner by remember { mutableStateOf(false) }
+    var isBarcodeSearching by remember { mutableStateOf(false) }
+    var barcodeNotFound by remember { mutableStateOf(false) }
 
     // Form state
     var fTime by remember { mutableStateOf("") }
@@ -112,9 +116,11 @@ fun FoodDiaryScreen(onBack: () -> Unit, vm: DiaryViewModel = viewModel()) {
         fTime = ""; fMealType = diaryMealTypes[0]; fFoods = ""; fCalories = ""
         fProtein = ""; fHunger = 3; fFullness = 3; fNotes = ""; fError = false
         searchQuery = ""; searchResults = emptyList(); searchError = false
+        barcodeNotFound = false
         showForm = false
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -238,14 +244,17 @@ fun FoodDiaryScreen(onBack: () -> Unit, vm: DiaryViewModel = viewModel()) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                                     OutlinedTextField(
                                         value = searchQuery,
-                                        onValueChange = { searchQuery = it; searchError = false },
+                                        onValueChange = { searchQuery = it; searchError = false; barcodeNotFound = false },
                                         label = { Text("Search Open Food Facts…") },
                                         singleLine = true,
                                         modifier = Modifier.weight(1f)
                                     )
-                                    if (isSearching) {
+                                    if (isSearching || isBarcodeSearching) {
                                         CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                                     } else {
+                                        IconButton(onClick = { showScanner = true }) {
+                                            Icon(Icons.Default.QrCodeScanner, contentDescription = "Scan barcode")
+                                        }
                                         OutlinedButton(
                                             onClick = {
                                                 if (searchQuery.isNotBlank()) {
@@ -262,6 +271,9 @@ fun FoodDiaryScreen(onBack: () -> Unit, vm: DiaryViewModel = viewModel()) {
                                             enabled = searchQuery.isNotBlank()
                                         ) { Text("Search") }
                                     }
+                                }
+                                if (barcodeNotFound) {
+                                    Text("Product not found. Try searching by name.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                                 }
                                 if (searchError) {
                                     Text("No results found. Try a different search term.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
@@ -439,6 +451,32 @@ fun FoodDiaryScreen(onBack: () -> Unit, vm: DiaryViewModel = viewModel()) {
             }
         }
     }
+
+    if (showScanner) {
+        BarcodeScannerOverlay(
+            onBarcodeDetected = { barcode ->
+                showScanner = false
+                showForm = true
+                barcodeNotFound = false
+                scope.launch {
+                    isBarcodeSearching = true
+                    val result = OpenFoodFactsRepository.searchByBarcode(barcode)
+                    if (result != null) {
+                        fFoods = result.name
+                        fCalories = result.caloriesPer100g?.toString() ?: ""
+                        fProtein = result.proteinPer100g?.let { "%.0f".format(it) } ?: ""
+                        searchResults = emptyList()
+                        searchQuery = ""
+                    } else {
+                        barcodeNotFound = true
+                    }
+                    isBarcodeSearching = false
+                }
+            },
+            onDismiss = { showScanner = false }
+        )
+    }
+    } // end Box
 }
 
 @Composable

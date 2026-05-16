@@ -20,6 +20,30 @@ data class FoodSearchResult(
 object OpenFoodFactsRepository {
     private const val BASE_URL = "https://world.openfoodfacts.org/cgi/search.pl"
 
+    suspend fun searchByBarcode(barcode: String): FoodSearchResult? = withContext(Dispatchers.IO) {
+        try {
+            val json = URL("https://world.openfoodfacts.org/api/v0/product/$barcode.json").readText()
+            val root = JSONObject(json)
+            if (root.optInt("status") != 1) return@withContext null
+            val product = root.optJSONObject("product") ?: return@withContext null
+            val name = product.optString("product_name").trim()
+            if (name.isBlank()) return@withContext null
+            val n = product.optJSONObject("nutriments")
+            FoodSearchResult(
+                name = name,
+                caloriesPer100g = n?.optDouble("energy-kcal_100g")?.takeIf { !it.isNaN() && it > 0 }?.toInt(),
+                proteinPer100g = n?.optDouble("proteins_100g")?.takeIf { !it.isNaN() && it >= 0 }?.toFloat(),
+                carbsPer100g = n?.optDouble("carbohydrates_100g")?.takeIf { !it.isNaN() && it >= 0 }?.toFloat(),
+                fatPer100g = n?.optDouble("fat_100g")?.takeIf { !it.isNaN() && it >= 0 }?.toFloat(),
+                fiberPer100g = n?.optDouble("fiber_100g")?.takeIf { !it.isNaN() && it >= 0 }?.toFloat(),
+                sugarsPer100g = n?.optDouble("sugars_100g")?.takeIf { !it.isNaN() && it >= 0 }?.toFloat(),
+                sodiumPer100g = n?.optDouble("sodium_100g")?.takeIf { !it.isNaN() && it >= 0 }?.toFloat()
+            )
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     suspend fun search(query: String): List<FoodSearchResult> = withContext(Dispatchers.IO) {
         runCatching {
             val encoded = URLEncoder.encode(query, "UTF-8")
