@@ -22,11 +22,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +36,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.LabEntryEntity
+import com.example.nutrahelp.viewmodel.LabViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -51,25 +56,18 @@ private val labTypes = listOf(
     LabType("Fasting Insulin", "μIU/mL", "Normal: < 25 μIU/mL"),
 )
 
-private data class LabEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val labType: LabType,
-    val value: String,
-    val notes: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LabResultsScreen(onBack: () -> Unit) {
+fun LabResultsScreen(onBack: () -> Unit, vm: LabViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var date by remember { mutableStateOf(todayStr) }
     var selectedLabType by remember { mutableStateOf(labTypes[0]) }
     var labExpanded by remember { mutableStateOf(false) }
     var value by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
-    var entries by remember { mutableStateOf(listOf<LabEntry>()) }
     var formError by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -169,14 +167,14 @@ fun LabResultsScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || value.isBlank()) {
                                     formError = true
                                 } else {
-                                    entries = (listOf(
-                                        LabEntry(
-                                            date = date,
-                                            labType = selectedLabType,
-                                            value = value.trim(),
-                                            notes = notes.trim()
-                                        )
-                                    ) + entries).sortedByDescending { it.id }
+                                    vm.insert(LabEntryEntity(
+                                        date = date,
+                                        labTypeName = selectedLabType.name,
+                                        labTypeUnit = selectedLabType.unit,
+                                        labTypeReference = selectedLabType.reference,
+                                        value = value.trim(),
+                                        notes = notes.trim()
+                                    ))
                                     date = todayStr
                                     value = ""
                                     notes = ""
@@ -193,7 +191,14 @@ fun LabResultsScreen(onBack: () -> Unit) {
 
             if (entries.isNotEmpty()) {
                 item {
-                    Text("History", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("History", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->
@@ -208,9 +213,9 @@ fun LabResultsScreen(onBack: () -> Unit) {
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Text(entry.labType.name, style = MaterialTheme.typography.titleSmall)
+                                    Text(entry.labTypeName, style = MaterialTheme.typography.titleSmall)
                                     Text(
-                                        "${entry.value} ${entry.labType.unit}",
+                                        "${entry.value} ${entry.labTypeUnit}",
                                         style = MaterialTheme.typography.titleSmall,
                                         color = MaterialTheme.colorScheme.primary
                                     )

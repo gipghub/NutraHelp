@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,20 +36,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.MealTimingEntryEntity
+import com.example.nutrahelp.viewmodel.MealTimingViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
 private val mealTypes = listOf("Breakfast", "Lunch", "Dinner", "Snack", "Other")
-
-private data class MealTimingEntry(
-    val id: Long = System.nanoTime(),
-    val mealType: String,
-    val mealName: String,
-    val time: String,
-    val minutesSinceMidnight: Int
-)
 
 private fun parseTimeToMinutes(time: String): Int? {
     return try {
@@ -73,14 +69,16 @@ private fun minutesToTimeStr(minutes: Int): String {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun MealTimingLogScreen(onBack: () -> Unit) {
+fun MealTimingLogScreen(onBack: () -> Unit, vm: MealTimingViewModel = viewModel()) {
+    val todayStr = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
     val currentTime = remember { SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var selectedMealType by remember { mutableStateOf(mealTypes[0]) }
     var mealName by remember { mutableStateOf("") }
     var timeInput by remember { mutableStateOf(currentTime) }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<MealTimingEntry>()) }
 
     val sortedEntries = entries.sortedBy { it.minutesSinceMidnight }
     val validMinutes = sortedEntries.map { it.minutesSinceMidnight }
@@ -188,14 +186,12 @@ fun MealTimingLogScreen(onBack: () -> Unit) {
                                 if (minutes == null) {
                                     formError = true
                                 } else {
-                                    entries = listOf(
-                                        MealTimingEntry(
-                                            mealType = selectedMealType,
-                                            mealName = mealName.trim(),
-                                            time = timeInput.trim(),
-                                            minutesSinceMidnight = minutes
-                                        )
-                                    ) + entries
+                                    vm.insert(MealTimingEntryEntity(
+                                        mealType = selectedMealType,
+                                        mealName = mealName.trim(),
+                                        time = timeInput.trim(),
+                                        minutesSinceMidnight = minutes
+                                    ))
                                     mealName = ""
                                     timeInput = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
                                     formError = false
@@ -215,7 +211,7 @@ fun MealTimingLogScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Today's Meals", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Reset") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Reset") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
