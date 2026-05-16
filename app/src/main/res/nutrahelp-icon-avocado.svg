@@ -1,0 +1,41 @@
+<svg width="512" height="512" viewBox="0 0 680 680" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>NutraHelp app icon — avocado and fork</title>
+<desc>Deep navy rounded square with a royal blue plate ring, white fork, avocado half with pit, cyan EKG heartbeat line, and a medical cross badge</desc>
+<defs>
+  <clipPath id="pc"><circle cx="340" cy="340" r="205"/></clipPath>
+</defs>
+
+<rect x="40" y="40" width="600" height="600" rx="128" fill="#081E3F"/>
+<rect x="40" y="40" width="600" height="600" rx="128" fill="none" stroke="#1A6CC4" stroke-width="3" opacity="0.5"/>
+
+<circle cx="340" cy="340" r="218" fill="none" stroke="#1565C0" stroke-width="22"/>
+<circle cx="340" cy="340" r="205" fill="#0D2B52"/>
+
+<rect x="226" y="222" width="13" height="106" rx="6" fill="white"/>
+<rect x="243" y="222" width="13" height="106" rx="6" fill="white"/>
+<rect x="260" y="222" width="13" height="106" rx="6" fill="white"/>
+<rect x="277" y="222" width="13" height="106" rx="6" fill="white"/>
+<rect x="219" y="322" width="71" height="30" rx="7" fill="white"/>
+<rect x="240" y="345" width="32" height="132" rx="16" fill="white"/>
+
+<g transform="rotate(5, 424, 346)">
+  <path d="M 424,218 C 454,224 492,274 492,350 C 492,422 464,474 424,474 C 384,474 356,422 356,350 C 356,274 394,224 424,218 Z" fill="white"/>
+  <circle cx="424" cy="374" r="44" fill="#0D2B52"/>
+  <circle cx="424" cy="374" r="44" fill="none" stroke="white" stroke-width="4" opacity="0.35"/>
+  <ellipse cx="414" cy="362" rx="10" ry="14" fill="white" opacity="0.55"/>
+</g>
+
+<g clip-path="url(#pc)">
+  <path d="M 90,347 L 294,347 L 310,262 L 325,432 L 342,347 L 386,347 Q 405,310 425,347 L 590,347" fill="none" stroke="#18EFFF" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+
+<circle cx="547" cy="138" r="44" fill="#1565C0"/>
+<rect x="525" y="131" width="44" height="14" rx="4" fill="white"/>
+<rect x="540" y="116" width="14" height="44" rx="4" fill="white"/>
+
+<circle cx="135" cy="542" r="28" fill="#1565C0" opacity="0.7"/>
+<circle cx="135" cy="542" r="18" fill="none" stroke="white" stroke-width="3"/>
+<line x1="135" y1="532" x2="135" y2="542" stroke="white" stroke-width="3" stroke-linecap="round"/>
+<circle cx="135" cy="545" r="2" fill="white"/>
+
+</svg>
