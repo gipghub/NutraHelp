@@ -19,11 +19,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,28 +35,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.MeasurementEntryEntity
+import com.example.nutrahelp.viewmodel.MeasurementViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 private val measurementFields = listOf("Waist", "Hips", "Chest", "Left Arm", "Right Arm", "Left Thigh", "Right Thigh")
 
-private data class MeasurementEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val unit: String,
-    val values: Map<String, Float>
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BodyMeasurementsScreen(onBack: () -> Unit) {
+fun BodyMeasurementsScreen(onBack: () -> Unit, vm: MeasurementViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     val useInches = !LocalUseMetric.current
     var date by remember { mutableStateOf(todayStr) }
     var inputs by remember { mutableStateOf(measurementFields.associateWith { "" }) }
-    var entries by remember { mutableStateOf(listOf<MeasurementEntry>()) }
     var formError by remember { mutableStateOf(false) }
 
     val unit = if (useInches) "in" else "cm"
@@ -130,9 +129,19 @@ fun BodyMeasurementsScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || parsedValues.isEmpty()) {
                                     formError = true
                                 } else {
-                                    val fmt = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
-                                    entries = (listOf(MeasurementEntry(date = date, unit = unit, values = parsedValues)) + entries)
-                                        .sortedByDescending { runCatching { fmt.parse(it.date) }.getOrNull() }
+                                    vm.insert(
+                                        MeasurementEntryEntity(
+                                            date = date,
+                                            unit = unit,
+                                            waist = parsedValues["Waist"] ?: -1f,
+                                            hips = parsedValues["Hips"] ?: -1f,
+                                            chest = parsedValues["Chest"] ?: -1f,
+                                            leftArm = parsedValues["Left Arm"] ?: -1f,
+                                            rightArm = parsedValues["Right Arm"] ?: -1f,
+                                            leftThigh = parsedValues["Left Thigh"] ?: -1f,
+                                            rightThigh = parsedValues["Right Thigh"] ?: -1f,
+                                        )
+                                    )
                                     inputs = measurementFields.associateWith { "" }
                                     date = todayStr
                                     formError = false
@@ -148,10 +157,26 @@ fun BodyMeasurementsScreen(onBack: () -> Unit) {
 
             if (entries.isNotEmpty()) {
                 item {
-                    Text("History", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("History", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->
+                    val valuesMap = listOfNotNull(
+                        if (entry.waist >= 0f) "Waist" to entry.waist else null,
+                        if (entry.hips >= 0f) "Hips" to entry.hips else null,
+                        if (entry.chest >= 0f) "Chest" to entry.chest else null,
+                        if (entry.leftArm >= 0f) "Left Arm" to entry.leftArm else null,
+                        if (entry.rightArm >= 0f) "Right Arm" to entry.rightArm else null,
+                        if (entry.leftThigh >= 0f) "Left Thigh" to entry.leftThigh else null,
+                        if (entry.rightThigh >= 0f) "Right Thigh" to entry.rightThigh else null,
+                    )
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Row(
@@ -162,7 +187,7 @@ fun BodyMeasurementsScreen(onBack: () -> Unit) {
                                 Text(entry.date, style = MaterialTheme.typography.titleSmall)
                                 Text(entry.unit, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
-                            entry.values.entries.chunked(2).forEach { pair ->
+                            valuesMap.chunked(2).forEach { pair ->
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                     pair.forEach { (name, value) ->
                                         Row(

@@ -19,11 +19,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,16 +36,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.A1CEntryEntity
+import com.example.nutrahelp.viewmodel.A1CViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-private data class A1CEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val value: Float,
-    val notes: String
-)
 
 private fun categorizeA1C(v: Float): Triple<String, String, String> = when {
     v < 5.7f -> Triple("Normal", "< 5.7%", "tertiary")
@@ -53,14 +51,15 @@ private fun categorizeA1C(v: Float): Triple<String, String, String> = when {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun A1CTrackerScreen(onBack: () -> Unit) {
+fun A1CTrackerScreen(onBack: () -> Unit, vm: A1CViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var date by remember { mutableStateOf(todayStr) }
     var valueInput by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<A1CEntry>()) }
 
     val latestEntry = entries.firstOrNull()
     val previousEntry = entries.getOrNull(1)
@@ -199,7 +198,7 @@ fun A1CTrackerScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || v == null || v <= 0f) {
                                     formError = true
                                 } else {
-                                    entries = listOf(A1CEntry(date = date, value = v, notes = notes.trim())) + entries
+                                    vm.insert(A1CEntryEntity(date = date, value = v, notes = notes.trim()))
                                     valueInput = ""; notes = ""; date = todayStr; formError = false
                                 }
                             },
@@ -211,7 +210,14 @@ fun A1CTrackerScreen(onBack: () -> Unit) {
 
             if (entries.isNotEmpty()) {
                 item {
-                    Text("History", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("History", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->

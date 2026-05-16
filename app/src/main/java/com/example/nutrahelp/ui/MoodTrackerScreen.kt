@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -43,8 +44,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nutrahelp.data.FoodSearchResult
+import com.example.nutrahelp.data.MoodEntryEntity
 import com.example.nutrahelp.data.OpenFoodFactsRepository
+import com.example.nutrahelp.viewmodel.MoodViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -56,25 +60,17 @@ private val emotionTags = listOf(
     "Sad", "Overwhelmed", "Content", "Hopeful", "Tired"
 )
 
-private data class MoodEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val time: String,
-    val moodLevel: Int,
-    val emotions: Set<String>,
-    val notes: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun MoodTrackerScreen(onBack: () -> Unit) {
+fun MoodTrackerScreen(onBack: () -> Unit, vm: MoodViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var moodLevel by remember { mutableIntStateOf(2) }
     var selectedEmotions by remember { mutableStateOf(setOf<String>()) }
     var notes by remember { mutableStateOf("") }
     var recentFood by remember { mutableStateOf("") }
-    var entries by remember { mutableStateOf(listOf<MoodEntry>()) }
 
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
@@ -262,15 +258,15 @@ fun MoodTrackerScreen(onBack: () -> Unit) {
                                     recentFood.trim().takeIf { it.isNotBlank() }?.let { "Food: $it" },
                                     notes.trim().takeIf { it.isNotBlank() }
                                 ).joinToString(" · ")
-                                entries = listOf(
-                                    MoodEntry(
+                                vm.insert(
+                                    MoodEntryEntity(
                                         date = todayStr,
                                         time = time,
                                         moodLevel = moodLevel,
-                                        emotions = selectedEmotions,
+                                        emotions = selectedEmotions.joinToString(","),
                                         notes = combinedNotes
                                     )
-                                ) + entries
+                                )
                                 moodLevel = 2
                                 selectedEmotions = setOf()
                                 notes = ""
@@ -292,7 +288,7 @@ fun MoodTrackerScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("History", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Reset") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Reset") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
@@ -320,9 +316,9 @@ fun MoodTrackerScreen(onBack: () -> Unit) {
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            if (entry.emotions.isNotEmpty()) {
+                            if (entry.emotions.isNotBlank()) {
                                 Text(
-                                    entry.emotions.joinToString(", "),
+                                    entry.emotions.split(",").filter { it.isNotBlank() }.joinToString(", "),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

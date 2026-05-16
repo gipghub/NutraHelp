@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -43,8 +44,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nutrahelp.data.FoodSearchResult
+import com.example.nutrahelp.data.GutEntryEntity
 import com.example.nutrahelp.data.OpenFoodFactsRepository
+import com.example.nutrahelp.viewmodel.GutViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -59,19 +63,12 @@ private val gutSymptoms = listOf(
 private val gutSeverityLabels = listOf("Mild", "Moderate", "Significant", "Severe", "Very Severe")
 private val gutTimeOptions = listOf("Morning", "Afternoon", "Evening", "Night")
 
-private data class GutEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val timeOfDay: String,
-    val symptoms: Set<String>,
-    val severity: Int,
-    val notes: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun GutHealthLogScreen(onBack: () -> Unit) {
+fun GutHealthLogScreen(onBack: () -> Unit, vm: GutViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var selectedTimeOfDay by remember { mutableStateOf(gutTimeOptions[0]) }
     var selectedSymptoms by remember { mutableStateOf(setOf<String>()) }
@@ -79,7 +76,6 @@ fun GutHealthLogScreen(onBack: () -> Unit) {
     var notes by remember { mutableStateOf("") }
     var foodTrigger by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<GutEntry>()) }
 
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
@@ -271,15 +267,15 @@ fun GutHealthLogScreen(onBack: () -> Unit) {
                                         foodTrigger.trim().takeIf { it.isNotBlank() }?.let { "Trigger: $it" },
                                         notes.trim().takeIf { it.isNotBlank() }
                                     ).joinToString(" · ")
-                                    entries = listOf(
-                                        GutEntry(
+                                    vm.insert(
+                                        GutEntryEntity(
                                             date = todayStr,
                                             timeOfDay = selectedTimeOfDay,
-                                            symptoms = selectedSymptoms,
+                                            symptoms = selectedSymptoms.joinToString(","),
                                             severity = severity,
                                             notes = combinedNotes
                                         )
-                                    ) + entries
+                                    )
                                     selectedSymptoms = setOf()
                                     severity = 0
                                     notes = ""
@@ -303,7 +299,7 @@ fun GutHealthLogScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("History", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Reset") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Reset") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
@@ -331,7 +327,7 @@ fun GutHealthLogScreen(onBack: () -> Unit) {
                                 )
                             }
                             Text(
-                                entry.symptoms.joinToString(", "),
+                                entry.symptoms.split(",").filter { it.isNotBlank() }.joinToString(", "),
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             if (entry.notes.isNotBlank()) {

@@ -21,11 +21,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +36,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.NsvEntryEntity
+import com.example.nutrahelp.viewmodel.NsvViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -43,23 +48,17 @@ private val nsvCategories = listOf(
     "Confidence", "Reduced Cravings", "Social", "Exercise Endurance", "Custom"
 )
 
-private data class NsvEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val category: String,
-    val description: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun NsvLogScreen(onBack: () -> Unit) {
+fun NsvLogScreen(onBack: () -> Unit, vm: NsvViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var date by remember { mutableStateOf(todayStr) }
     var selectedCategory by remember { mutableStateOf(nsvCategories[0]) }
     var description by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<NsvEntry>()) }
 
     Scaffold(
         topBar = {
@@ -146,9 +145,7 @@ fun NsvLogScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || description.isBlank()) {
                                     formError = true
                                 } else {
-                                    entries = listOf(
-                                        NsvEntry(date = date, category = selectedCategory, description = description.trim())
-                                    ) + entries
+                                    vm.insert(NsvEntryEntity(date = date, category = selectedCategory, description = description.trim()))
                                     description = ""; date = todayStr; formError = false
                                 }
                             },
@@ -166,6 +163,7 @@ fun NsvLogScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("My Victories", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
                         Text(
                             "${entries.size} total",
                             style = MaterialTheme.typography.bodySmall,

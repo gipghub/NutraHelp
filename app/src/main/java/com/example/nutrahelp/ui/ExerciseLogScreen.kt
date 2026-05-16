@@ -23,6 +23,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -31,6 +32,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +41,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.ExerciseEntryEntity
+import com.example.nutrahelp.viewmodel.ExerciseViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -49,19 +54,12 @@ private val exerciseTypes = listOf(
 )
 private val intensities = listOf("Low", "Moderate", "High")
 
-private data class ExerciseEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val type: String,
-    val durationMins: Int,
-    val intensity: String,
-    val notes: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExerciseLogScreen(onBack: () -> Unit) {
+fun ExerciseLogScreen(onBack: () -> Unit, vm: ExerciseViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var date by remember { mutableStateOf(todayStr) }
     var exerciseType by remember { mutableStateOf(exerciseTypes[0]) }
@@ -69,7 +67,6 @@ fun ExerciseLogScreen(onBack: () -> Unit) {
     var duration by remember { mutableStateOf("") }
     var intensity by remember { mutableStateOf(intensities[1]) }
     var notes by remember { mutableStateOf("") }
-    var entries by remember { mutableStateOf(listOf<ExerciseEntry>()) }
     var formError by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -184,15 +181,15 @@ fun ExerciseLogScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || mins == null || mins <= 0) {
                                     formError = true
                                 } else {
-                                    entries = (listOf(
-                                        ExerciseEntry(
+                                    vm.insert(
+                                        ExerciseEntryEntity(
                                             date = date,
                                             type = exerciseType,
                                             durationMins = mins,
                                             intensity = intensity,
                                             notes = notes.trim()
                                         )
-                                    ) + entries).sortedByDescending { it.id }
+                                    )
                                     date = todayStr
                                     duration = ""
                                     notes = ""
@@ -228,7 +225,14 @@ fun ExerciseLogScreen(onBack: () -> Unit) {
                     }
                 }
                 item {
-                    Text("History", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("History", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->

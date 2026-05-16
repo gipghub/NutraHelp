@@ -19,11 +19,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,18 +36,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.BpEntryEntity
+import com.example.nutrahelp.viewmodel.BpViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-private data class BpEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val systolic: Int,
-    val diastolic: Int,
-    val pulse: Int?,
-    val notes: String
-)
 
 private data class BpCategory(val label: String, val description: String, val colorToken: String)
 
@@ -60,8 +56,10 @@ private fun categorizeBp(sys: Int, dia: Int): BpCategory = when {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BloodPressureLogScreen(onBack: () -> Unit) {
+fun BloodPressureLogScreen(onBack: () -> Unit, vm: BpViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var date by remember { mutableStateOf(todayStr) }
     var systolicInput by remember { mutableStateOf("") }
@@ -69,7 +67,6 @@ fun BloodPressureLogScreen(onBack: () -> Unit) {
     var pulseInput by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<BpEntry>()) }
 
     Scaffold(
         topBar = {
@@ -192,15 +189,15 @@ fun BloodPressureLogScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || sys == null || dia == null) {
                                     formError = true
                                 } else {
-                                    entries = (listOf(
-                                        BpEntry(
+                                    vm.insert(
+                                        BpEntryEntity(
                                             date = date,
                                             systolic = sys,
                                             diastolic = dia,
-                                            pulse = pulseInput.toIntOrNull(),
+                                            pulse = pulseInput.toIntOrNull() ?: -1,
                                             notes = notes.trim()
                                         )
-                                    ) + entries).sortedByDescending { it.id }
+                                    )
                                     systolicInput = ""; diastolicInput = ""; pulseInput = ""; notes = ""
                                     date = todayStr; formError = false
                                 }
@@ -213,7 +210,14 @@ fun BloodPressureLogScreen(onBack: () -> Unit) {
 
             if (entries.isNotEmpty()) {
                 item {
-                    Text("History", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("History", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->
@@ -252,7 +256,7 @@ fun BloodPressureLogScreen(onBack: () -> Unit) {
                                     fontWeight = FontWeight.Bold,
                                     color = catColor
                                 )
-                                if (entry.pulse != null) {
+                                if (entry.pulse >= 0) {
                                     Text(
                                         "${entry.pulse} bpm",
                                         style = MaterialTheme.typography.bodySmall,

@@ -19,11 +19,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,19 +36,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.CholesterolEntryEntity
+import com.example.nutrahelp.viewmodel.CholesterolViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-private data class CholesterolEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val total: Float?,
-    val hdl: Float?,
-    val ldl: Float?,
-    val triglycerides: Float?,
-    val notes: String
-)
 
 private fun totalCategory(v: Float) = when {
     v < 200f -> Triple("Desirable", "tertiary", "< 200 mg/dL")
@@ -77,8 +72,10 @@ private fun triglyceridesCategory(v: Float) = when {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CholesterolLogScreen(onBack: () -> Unit) {
+fun CholesterolLogScreen(onBack: () -> Unit, vm: CholesterolViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var date by remember { mutableStateOf(todayStr) }
     var totalInput by remember { mutableStateOf("") }
@@ -87,7 +84,6 @@ fun CholesterolLogScreen(onBack: () -> Unit) {
     var triInput by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<CholesterolEntry>()) }
 
     Scaffold(
         topBar = {
@@ -205,7 +201,14 @@ fun CholesterolLogScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || (t == null && h == null && l == null && tri == null)) {
                                     formError = true
                                 } else {
-                                    entries = (listOf(CholesterolEntry(date = date, total = t, hdl = h, ldl = l, triglycerides = tri, notes = notes.trim())) + entries).sortedByDescending { it.id }
+                                    vm.insert(CholesterolEntryEntity(
+                                        date = date,
+                                        total = t ?: -1f,
+                                        hdl = h ?: -1f,
+                                        ldl = l ?: -1f,
+                                        triglycerides = tri ?: -1f,
+                                        notes = notes.trim()
+                                    ))
                                     totalInput = ""; hdlInput = ""; ldlInput = ""; triInput = ""; notes = ""; date = todayStr; formError = false
                                 }
                             },
@@ -217,28 +220,35 @@ fun CholesterolLogScreen(onBack: () -> Unit) {
 
             if (entries.isNotEmpty()) {
                 item {
-                    Text("History", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("History", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Text(entry.date, style = MaterialTheme.typography.titleSmall)
-                            entry.total?.let { v ->
-                                val (lbl, tok, _) = totalCategory(v)
-                                CholRow("Total", v, lbl, tok)
+                            if (entry.total >= 0f) {
+                                val (lbl, tok, _) = totalCategory(entry.total)
+                                CholRow("Total", entry.total, lbl, tok)
                             }
-                            entry.ldl?.let { v ->
-                                val (lbl, tok, _) = ldlCategory(v)
-                                CholRow("LDL", v, lbl, tok)
+                            if (entry.ldl >= 0f) {
+                                val (lbl, tok, _) = ldlCategory(entry.ldl)
+                                CholRow("LDL", entry.ldl, lbl, tok)
                             }
-                            entry.hdl?.let { v ->
-                                val (lbl, tok, _) = hdlCategory(v)
-                                CholRow("HDL", v, lbl, tok)
+                            if (entry.hdl >= 0f) {
+                                val (lbl, tok, _) = hdlCategory(entry.hdl)
+                                CholRow("HDL", entry.hdl, lbl, tok)
                             }
-                            entry.triglycerides?.let { v ->
-                                val (lbl, tok, _) = triglyceridesCategory(v)
-                                CholRow("Triglycerides", v, lbl, tok)
+                            if (entry.triglycerides >= 0f) {
+                                val (lbl, tok, _) = triglyceridesCategory(entry.triglycerides)
+                                CholRow("Triglycerides", entry.triglycerides, lbl, tok)
                             }
                             if (entry.notes.isNotBlank()) {
                                 Text(entry.notes, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

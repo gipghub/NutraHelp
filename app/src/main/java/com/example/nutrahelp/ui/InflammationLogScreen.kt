@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -45,8 +46,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nutrahelp.data.FoodSearchResult
+import com.example.nutrahelp.data.InflammationEntryEntity
 import com.example.nutrahelp.data.OpenFoodFactsRepository
+import com.example.nutrahelp.viewmodel.InflammationViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import kotlinx.coroutines.launch
@@ -58,32 +62,19 @@ private val inflammationSymptoms = listOf(
 
 private val inflammationSeverityLabels = listOf("Minimal", "Mild", "Moderate", "Significant", "Severe")
 
-private data class InflammationEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val symptoms: Set<String>,
-    val severity: Int,
-    val notes: String
-)
-
-private fun inflammationSeverityColor(severity: Int) = when (severity) {
-    0 -> "tertiary"
-    1, 2 -> "secondary"
-    else -> "error"
-}
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun InflammationLogScreen(onBack: () -> Unit) {
+fun InflammationLogScreen(onBack: () -> Unit, vm: InflammationViewModel = viewModel()) {
     val locale = LocalConfiguration.current.locales[0]
     val today = remember(locale) { SimpleDateFormat("MMM d, yyyy", locale).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var selectedSymptoms by remember { mutableStateOf(setOf<String>()) }
     var selectedSeverity by remember { mutableIntStateOf(0) }
     var notes by remember { mutableStateOf("") }
     var foodTrigger by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<InflammationEntry>()) }
 
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<List<FoodSearchResult>>(emptyList()) }
@@ -129,9 +120,10 @@ fun InflammationLogScreen(onBack: () -> Unit) {
                                     else -> MaterialTheme.colorScheme.error
                                 }
                             )
-                            if (latest.symptoms.isNotEmpty()) {
+                            val symptomsSet = latest.symptoms.split(",").filter { it.isNotBlank() }.toSet()
+                            if (symptomsSet.isNotEmpty()) {
                                 Text(
-                                    latest.symptoms.joinToString(" · "),
+                                    symptomsSet.joinToString(" · "),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -278,14 +270,14 @@ fun InflammationLogScreen(onBack: () -> Unit) {
                                         foodTrigger.trim().takeIf { it.isNotBlank() }?.let { "Trigger: $it" },
                                         notes.trim().takeIf { it.isNotBlank() }
                                     ).joinToString(" · ")
-                                    entries = (listOf(
-                                        InflammationEntry(
+                                    vm.insert(
+                                        InflammationEntryEntity(
                                             date = today,
-                                            symptoms = selectedSymptoms,
+                                            symptoms = selectedSymptoms.joinToString(","),
                                             severity = selectedSeverity,
                                             notes = combinedNotes
                                         )
-                                    ) + entries).sortedByDescending { it.id }
+                                    )
                                     selectedSymptoms = setOf()
                                     selectedSeverity = 0
                                     notes = ""
@@ -309,7 +301,7 @@ fun InflammationLogScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("History (${entries.size})", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Clear") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
@@ -343,9 +335,10 @@ fun InflammationLogScreen(onBack: () -> Unit) {
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
-                                if (entry.symptoms.isNotEmpty()) {
+                                val symptomsSet = entry.symptoms.split(",").filter { it.isNotBlank() }
+                                if (symptomsSet.isNotEmpty()) {
                                     Text(
-                                        entry.symptoms.joinToString(", "),
+                                        symptomsSet.joinToString(", "),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -358,7 +351,7 @@ fun InflammationLogScreen(onBack: () -> Unit) {
                                     )
                                 }
                             }
-                            IconButton(onClick = { entries = entries.filter { it.id != entry.id } }) {
+                            IconButton(onClick = { vm.delete(entry) }) {
                                 Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error)
                             }
                         }

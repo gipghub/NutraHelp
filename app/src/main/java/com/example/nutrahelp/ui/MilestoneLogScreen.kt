@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +36,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.MilestoneEntryEntity
+import com.example.nutrahelp.viewmodel.MilestoneViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -50,25 +54,18 @@ private val categoryColors = mapOf(
     "Other" to "primary"
 )
 
-private data class MilestoneEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val category: String,
-    val title: String,
-    val description: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun MilestoneLogScreen(onBack: () -> Unit) {
+fun MilestoneLogScreen(onBack: () -> Unit, vm: MilestoneViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var selectedCategory by remember { mutableStateOf(milestoneCategories[0]) }
     var dateInput by remember { mutableStateOf(todayStr) }
     var titleInput by remember { mutableStateOf("") }
     var descriptionInput by remember { mutableStateOf("") }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<MilestoneEntry>()) }
 
     Scaffold(
         topBar = {
@@ -175,14 +172,12 @@ fun MilestoneLogScreen(onBack: () -> Unit) {
                                 if (titleInput.isBlank()) {
                                     formError = true
                                 } else {
-                                    entries = (listOf(
-                                        MilestoneEntry(
-                                            date = dateInput.trim(),
-                                            category = selectedCategory,
-                                            title = titleInput.trim(),
-                                            description = descriptionInput.trim()
-                                        )
-                                    ) + entries).sortedByDescending { it.id }
+                                    vm.insert(MilestoneEntryEntity(
+                                        date = dateInput.trim(),
+                                        category = selectedCategory,
+                                        title = titleInput.trim(),
+                                        description = descriptionInput.trim()
+                                    ))
                                     titleInput = ""
                                     descriptionInput = ""
                                     dateInput = SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date())
@@ -203,7 +198,7 @@ fun MilestoneLogScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("My Milestones", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Reset") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Reset") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }

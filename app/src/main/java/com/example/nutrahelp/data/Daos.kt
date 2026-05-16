@@ -531,7 +531,7 @@ interface HungerDao {
 
 @Dao
 interface MealTimingDao {
-    @Query("SELECT * FROM meal_timing_entries ORDER BY id DESC")
+    @Query("SELECT * FROM meal_timing_entries ORDER BY minutesSinceMidnight ASC")
     fun getAll(): Flow<List<MealTimingEntryEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

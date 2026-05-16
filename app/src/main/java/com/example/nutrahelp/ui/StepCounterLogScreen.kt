@@ -26,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -36,28 +37,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.StepEntryEntity
+import com.example.nutrahelp.viewmodel.StepViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private data class StepEntry(
-    val id: Long = System.nanoTime(),
-    val date: String,
-    val steps: Int,
-    val goalMet: Boolean
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StepCounterLogScreen(onBack: () -> Unit) {
+fun StepCounterLogScreen(onBack: () -> Unit, vm: StepViewModel = viewModel()) {
     val todayStr = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var dailyGoal by remember { mutableIntStateOf(10000) }
     var goalInput by remember { mutableStateOf("10000") }
     var stepsInput by remember { mutableStateOf("") }
     var date by remember { mutableStateOf(todayStr) }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<StepEntry>()) }
 
     val streak = run {
         var count = 0
@@ -175,7 +173,7 @@ fun StepCounterLogScreen(onBack: () -> Unit) {
                                 if (date.isBlank() || steps == null || steps < 0) {
                                     formError = true
                                 } else {
-                                    entries = (listOf(StepEntry(date = date, steps = steps, goalMet = steps >= dailyGoal)) + entries).sortedByDescending { it.id }
+                                    vm.insert(StepEntryEntity(date = date, steps = steps, goalMet = steps >= dailyGoal))
                                     stepsInput = ""; date = todayStr; formError = false
                                 }
                             },
@@ -187,7 +185,14 @@ fun StepCounterLogScreen(onBack: () -> Unit) {
 
             if (entries.isNotEmpty()) {
                 item {
-                    Text("History", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("History", style = MaterialTheme.typography.titleMedium)
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Clear") }
+                    }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
                 items(entries, key = { it.id }) { entry ->

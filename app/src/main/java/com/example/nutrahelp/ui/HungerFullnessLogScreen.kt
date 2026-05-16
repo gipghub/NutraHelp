@@ -27,6 +27,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -36,6 +37,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.nutrahelp.data.HungerEntryEntity
+import com.example.nutrahelp.viewmodel.HungerViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -43,25 +47,19 @@ import java.util.Locale
 private val hungerLabels = listOf("Starving", "Hungry", "Neutral", "Satisfied", "Full")
 private val fullnessLabels = listOf("Empty", "Light", "Content", "Full", "Stuffed")
 
-private data class HungerEntry(
-    val id: Long = System.nanoTime(),
-    val time: String,
-    val mealName: String,
-    val hungerBefore: Int,
-    val fullnessAfter: Int
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HungerFullnessLogScreen(onBack: () -> Unit) {
+fun HungerFullnessLogScreen(onBack: () -> Unit, vm: HungerViewModel = viewModel()) {
+    val todayStr = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
     val currentTime = remember { SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date()) }
+
+    val entries by vm.entries.collectAsState()
 
     var mealName by remember { mutableStateOf("") }
     var timeInput by remember { mutableStateOf(currentTime) }
     var hungerBefore by remember { mutableIntStateOf(1) }
     var fullnessAfter by remember { mutableIntStateOf(3) }
     var formError by remember { mutableStateOf(false) }
-    var entries by remember { mutableStateOf(listOf<HungerEntry>()) }
 
     Scaffold(
         topBar = {
@@ -168,14 +166,13 @@ fun HungerFullnessLogScreen(onBack: () -> Unit) {
                                 if (mealName.isBlank()) {
                                     formError = true
                                 } else {
-                                    entries = (listOf(
-                                        HungerEntry(
-                                            time = timeInput.trim(),
-                                            mealName = mealName.trim(),
-                                            hungerBefore = hungerBefore,
-                                            fullnessAfter = fullnessAfter
-                                        )
-                                    ) + entries).sortedByDescending { it.id }
+                                    vm.insert(HungerEntryEntity(
+                                        date = todayStr,
+                                        time = timeInput.trim(),
+                                        mealName = mealName.trim(),
+                                        hungerBefore = hungerBefore,
+                                        fullnessAfter = fullnessAfter
+                                    ))
                                     mealName = ""
                                     timeInput = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
                                     hungerBefore = 1
@@ -197,7 +194,7 @@ fun HungerFullnessLogScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Today's Log", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = { entries = listOf() }) { Text("Reset") }
+                        OutlinedButton(onClick = { vm.deleteAll() }) { Text("Reset") }
                     }
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 }
