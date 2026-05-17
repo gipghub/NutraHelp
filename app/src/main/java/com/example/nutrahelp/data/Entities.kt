@@ -29,6 +29,8 @@ data class DiaryEntryEntity(
     val foods: String,
     val calories: Int,      // 0 = not entered
     val protein: Int,       // 0 = not entered
+    val carbs: Int,         // 0 = not entered
+    val fat: Int,           // 0 = not entered
     val hungerBefore: Int,
     val fullnessAfter: Int,
     val notes: String,

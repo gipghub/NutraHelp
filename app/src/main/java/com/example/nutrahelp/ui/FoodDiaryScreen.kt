@@ -90,6 +90,8 @@ fun FoodDiaryScreen(onBack: () -> Unit, vm: DiaryViewModel = viewModel()) {
     var fFoods by remember { mutableStateOf("") }
     var fCalories by remember { mutableStateOf("") }
     var fProtein by remember { mutableStateOf("") }
+    var fCarbs by remember { mutableStateOf("") }
+    var fFat by remember { mutableStateOf("") }
     var fHunger by remember { mutableIntStateOf(3) }
     var fFullness by remember { mutableIntStateOf(3) }
     var fNotes by remember { mutableStateOf("") }
@@ -114,7 +116,7 @@ fun FoodDiaryScreen(onBack: () -> Unit, vm: DiaryViewModel = viewModel()) {
 
     fun resetForm() {
         fTime = ""; fMealType = diaryMealTypes[0]; fFoods = ""; fCalories = ""
-        fProtein = ""; fHunger = 3; fFullness = 3; fNotes = ""; fError = false
+        fProtein = ""; fCarbs = ""; fFat = ""; fHunger = 3; fFullness = 3; fNotes = ""; fError = false
         searchQuery = ""; searchResults = emptyList(); searchError = false
         barcodeNotFound = false
         showForm = false
@@ -241,6 +243,26 @@ fun FoodDiaryScreen(onBack: () -> Unit, vm: DiaryViewModel = viewModel()) {
                             // Food database search
                             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text("Search Food Database", style = MaterialTheme.typography.labelMedium)
+                                if (isBarcodeSearching) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                                        Spacer(Modifier.width(8.dp))
+                                        Text("Looking up product…", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                } else {
+                                    Button(
+                                        onClick = { showScanner = true },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Icon(Icons.Default.QrCodeScanner, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(Modifier.width(8.dp))
+                                        Text("Scan Barcode")
+                                    }
+                                }
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                                     OutlinedTextField(
                                         value = searchQuery,
@@ -249,12 +271,9 @@ fun FoodDiaryScreen(onBack: () -> Unit, vm: DiaryViewModel = viewModel()) {
                                         singleLine = true,
                                         modifier = Modifier.weight(1f)
                                     )
-                                    if (isSearching || isBarcodeSearching) {
+                                    if (isSearching) {
                                         CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                                     } else {
-                                        IconButton(onClick = { showScanner = true }) {
-                                            Icon(Icons.Default.QrCodeScanner, contentDescription = "Scan barcode")
-                                        }
                                         OutlinedButton(
                                             onClick = {
                                                 if (searchQuery.isNotBlank()) {
@@ -370,6 +389,26 @@ fun FoodDiaryScreen(onBack: () -> Unit, vm: DiaryViewModel = viewModel()) {
                                 )
                             }
 
+                            // Carbs + fat
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedTextField(
+                                    value = fCarbs,
+                                    onValueChange = { fCarbs = it.filter { c -> c.isDigit() } },
+                                    label = { Text("Carbs (g)") },
+                                    singleLine = true,
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    modifier = Modifier.weight(1f)
+                                )
+                                OutlinedTextField(
+                                    value = fFat,
+                                    onValueChange = { fFat = it.filter { c -> c.isDigit() } },
+                                    label = { Text("Fat (g)") },
+                                    singleLine = true,
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+
                             // Hunger before
                             RatingRow(
                                 label = "Hunger before",
@@ -415,6 +454,8 @@ fun FoodDiaryScreen(onBack: () -> Unit, vm: DiaryViewModel = viewModel()) {
                                             foods = fFoods.trim(),
                                             calories = fCalories.toIntOrNull() ?: 0,
                                             protein = fProtein.toIntOrNull() ?: 0,
+                                            carbs = fCarbs.toIntOrNull() ?: 0,
+                                            fat = fFat.toIntOrNull() ?: 0,
                                             hungerBefore = fHunger,
                                             fullnessAfter = fFullness,
                                             notes = fNotes.trim()
@@ -465,6 +506,8 @@ fun FoodDiaryScreen(onBack: () -> Unit, vm: DiaryViewModel = viewModel()) {
                         fFoods = result.name
                         fCalories = result.caloriesPer100g?.toString() ?: ""
                         fProtein = result.proteinPer100g?.let { "%.0f".format(it) } ?: ""
+                        fCarbs = result.carbsPer100g?.let { "%.0f".format(it) } ?: ""
+                        fFat = result.fatPer100g?.let { "%.0f".format(it) } ?: ""
                         searchResults = emptyList()
                         searchQuery = ""
                     } else {
@@ -569,23 +612,19 @@ private fun DiaryEntryCard(entry: DiaryEntryEntity, onDelete: () -> Unit) {
             }
 
             // Nutrition info
-            if (entry.calories > 0 || entry.protein > 0) {
+            if (entry.calories > 0 || entry.protein > 0 || entry.carbs > 0 || entry.fat > 0) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (entry.calories > 0) {
-                        Text(
-                            "${entry.calories} kcal",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Medium
-                        )
+                        Text("${entry.calories} kcal", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
                     }
                     if (entry.protein > 0) {
-                        Text(
-                            "${entry.protein}g protein",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary,
-                            fontWeight = FontWeight.Medium
-                        )
+                        Text("${entry.protein}g protein", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Medium)
+                    }
+                    if (entry.carbs > 0) {
+                        Text("${entry.carbs}g carbs", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary, fontWeight = FontWeight.Medium)
+                    }
+                    if (entry.fat > 0) {
+                        Text("${entry.fat}g fat", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Medium)
                     }
                 }
             }

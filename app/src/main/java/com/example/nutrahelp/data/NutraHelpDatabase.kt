@@ -52,7 +52,7 @@ import androidx.room.RoomDatabase
         CheckInEntryEntity::class,
         Glp1EntryEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class NutraHelpDatabase : RoomDatabase() {
